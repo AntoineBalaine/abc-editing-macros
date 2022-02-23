@@ -1,0 +1,24 @@
+X: 1
+C: Johann Sebastian Bach
+T: Suite 2 for Cello
+T: Prélude
+K: F
+V: 1 clef=treble middle=D
+L: 1/16
+%%this is a comment
+D2F2 (A4 A)(FED) | (^CEGA) (B4 B)(AGF) | (EGB^c) e2>B2 (AGFE) | (FGAF) (D2C2B,2A,2) |
+(B,DFA) d2>c2 (BAGF) | (EGBd) cABG FEGB, | (ACEG) c2>B2 (AGFE) | (DFAC) BGAF (EFAF) | 
+(G,B,DF) B2>A2 (GFEG) | (A,CEG) (CAEG) (FAD_E) | (DA,B,D) (GBAc) BGdF | (E=B,CE) GDEC B,G,EB, | 
+F,2A,2 (C4 C)(B,A,G,) | (^F,A,B,C) (D,CB,A,) (^F_EDC) | (B,A,G,B,) (D4 D)CB,A, | (^G=BCD) (E,DCB,) (^GFED) |
+(C=B,A,C) FEF^G AFDC | (=B,D^G=B) d2>c2 (=BA^GA) | (CEAc) e2>c2 (=BA^GA) | (DFAd) f2>e2 (dc=Bd) |
+E(dc=B) A(cBA) D(BA^G) | C(AGF) ^C(GFE) D(FED) | ^G,(DEF) =B(FED) ^G,(DC=B,) | (A,=BCE) A=BcA ECA,G, |
+(^F,A,CD) _E2>D2 (CB,C)A | (B,A,B,)D G,(_EFG) A,(GFE) | (DCD)F B,(GAB) ^C(BAG) | (FEF)A D(Bcd) E(dcB) |
+(AGA)C F(def) G(fed) | ^c(GFE) A(EFG) ^c(BAG) |(FGA)^c d(AGF) A(FED) | ^G(DEF) A,(FED) ^G(FED) | 
+(^C=B^CE) A(E^CE) A,(GFE) | (FEF)A d(AFA) D(cBA) | (GFG)^c e^eG^c A(GFE) | DAde fdAF DcBA | 
+(GAB)D _EFGA BG_eG | (FGA)^C DEFG AFdF | (EFG)B, A,=B,^CD EB,GB | ^C,2A,2 (G4 G)(BAG) |
+(FED)E FDAD dAFD | ^G,2F2 (d4 d)fed | ^c=BAB ^cAdA eAFa | ge^ce A^cef gfge | 
+fd^cd A^cde fefd | e^c=BC ABcd edec | d(=BA=B) (F^G=B)^c d^cdB | !fermata![G,E^c]4 z4 z4 |
+B(G^FG) _EGDG _EGBD | (^CEGA) B2>A2 (G^FG)e | FdBG AFEG FD^CE | 
+DB,A,G, (^F,A,C_E) DGB,A, | B,G,^F,G, _E,G,D,G, (_E,G,B,)D, | [^C,B,G]2>(F2 ED^C=B, A,G,F,E,) | (D,A,DE) (FEDC B,A,G,F) |
+(E,A,^CE) (GFED ^C=B,A,G,) | (F,A,DF) ADFA dBcA | G,DGA B(G^FG) _eGDg | [A,G^C]12 | [A,Fd]12 | [A,Ed]12 | [A,E^c]12 | [D,A,Fd]12 ||
+"vln \n soli" cdef g2g2 a2a2 g"/vln \n cb"dGD | "/cb"G,
