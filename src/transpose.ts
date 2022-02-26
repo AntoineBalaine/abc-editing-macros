@@ -31,6 +31,12 @@ export const octaviateUpTransform = (note: string) => {
   else note = note.toLowerCase();
   return note;
 }
+export const convertToRestTransform = (note:string) =>{
+  note = note.replace(/[\^_,']/g, "");
+  note = note.replace(/[a-gA-G]/g, "z");
+  return note;
+}
+
 /*
    here, there is the possibility that the returned note might actually already be altered - either previously in the measure, or in the key signature.
    I won't be accomodating these two cases in the context of a macro, I leave it to the responsibility of the composer to proof-read his work.
@@ -168,4 +174,9 @@ export const transposeHalfStepUp = (input: string) => {
 export const transposeHalfStepDown = (input: string) => {
   let context = { pos: 0 };
   return dispatcher(input, context, transposeHalfStepDownTransform);
+}
+
+export const turnNotesToRests = (input: string) => {
+  let context = { pos: 0 };
+  return dispatcher(input, context, convertToRestTransform);
 }

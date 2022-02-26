@@ -1,7 +1,10 @@
-//var assert = require('assert');
 import assert from "assert";
 import fs from "fs";
-const sampleScore = fs.readFileSync("src/test/BachCelloSuiteDmin.abc", "utf-8");
+import { annotationCommandEnum, createOrUpdateHarmonizationRoutine } from "../annotationsActions";
+import path from "path";
+
+const scoreFilePath = "src/test/test_out/BachCelloSuiteDmin.abc";
+const sampleScore = fs.readFileSync(scoreFilePath, "utf-8");
 
 /* à faire:
 - crée un fichier à partir du contenu en annotations dans un string ABC .
@@ -14,8 +17,6 @@ Couches d'arrangement:
     3. familles d'instruments
 */
 describe('Annotate', function(){
-    it('wraps the provided text in annotation tags', function(){});
-    it('inserts new tags in annotation if annotation exists right at edges of current selection, separates each tag with a \\n', function(){});
     it("doesn't allow multiple harmonisation techniques, but does allow multiple instruments/instrument families", function(){});
     it('accepts self closing tags for single hit notes', function(){});
 });
@@ -23,7 +24,13 @@ describe('Arrange', function(){
     describe('using harmony annotations in score', function(){
         it('returns contents of tagged parts', function(){});
         it('returns tagged harmony parts', function(){});
-        it('creates harmonisation file with matching file name', function(){});
+        it('creates harmonisation file with matching file name', async function(){
+            createOrUpdateHarmonizationRoutine(sampleScore, annotationCommandEnum.createHarmonisationFile, scoreFilePath);
+    
+            const targetFile = path.join(path.dirname(scoreFilePath), path.parse(scoreFilePath).name+`.${annotationCommandEnum.createHarmonisationFile}.abc`)
+
+            assert.ok(fs.existsSync(targetFile))
+        });
         it('writes harmonisation-tagged sections to file', function(){});
         //in the case that some chords symbols are not provided for either curNote/curBar, do not harmonise
     });

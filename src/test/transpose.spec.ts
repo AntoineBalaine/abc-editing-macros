@@ -1,7 +1,7 @@
-import { octaviateDownTransform, octaviateUpTransform, transposeHalfStepDown, transposeHalfStepDownTransform, transposeHalfStepUp, transposeHalfStepUpTransform, transposeOctDown, transposeOctUp } from "../transpose";
+import { convertToRestTransform, octaviateDownTransform, octaviateUpTransform, transposeHalfStepDown, transposeHalfStepDownTransform, transposeHalfStepUp, transposeHalfStepUpTransform, transposeOctDown, transposeOctUp, turnNotesToRests } from "../transpose";
 import assert from "assert";
 
-describe('Transpose', function() {
+describe('Transpose and rest', function() {
   describe('using letterTransform functions', function() {
     it('octave down single letters', function() {
       assert.equal(octaviateDownTransform("^a\'\'"), "^a'");
@@ -52,6 +52,12 @@ describe('Transpose', function() {
     const fullTextLineDownAHalfStep = "(E,A,^CE) (GFED ^C=B,A,G,) | (F,A,DF) ADFA dBcA | G,DGA B(G^FG) _eGDg | [A,G^C]12 | [A,Fd]12 | [A,Ed]12 | [A,E^c]12 | [D,A,Fd]12 ||";
     const fullTextLineDownAStep = "(E,A,^CE) (GFED ^C=B,A,G,) | (F,A,DF) ADFA dBcA | G,DGA B(G^FG) _eGDg | [A,G^C]12 | [A,Fd]12 | [A,Ed]12 | [A,E^c]12 | [D,A,Fd]12 ||";
 
+    it('turn notes to rests', function(){
+      assert.equal(turnNotesToRests("C,E,^G,C"), "zzzz");
+      assert.equal(turnNotesToRests("CE^Gc"), "zzzz");
+      assert.equal(turnNotesToRests("ce^gc'"), "zzzz");
+      assert.equal(turnNotesToRests("c'_e'g'c''"), "zzzz");
+    });
     it('octave down', function() {
       assert.equal(transposeOctDown("C,E,^G,C"), "C,,E,,^G,,C,");
       assert.equal(transposeOctDown("CE^Gc"), "C,E,^G,C");
@@ -83,3 +89,4 @@ describe('Transpose', function() {
     })
   });
 });
+

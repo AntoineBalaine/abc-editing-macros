@@ -6,6 +6,7 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "test": "mocha -r ts-node/register src/**/*.spec.ts",
+    "testJS": "tsc && mocha dist/src/**/*.spec.js",
     "start-dev": "ts-node index.ts",
     "start": "node dist/index.js",
     "build": "tsc"
@@ -19,8 +20,5 @@
     "ts-mocha": "^9.0.2",
     "ts-node": "^10.5.0",
     "typescript": "^4.5.5"
-  },
-  "dependencies": {
-    "path-type": "^5.0.0"
   }
 }

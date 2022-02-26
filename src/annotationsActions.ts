@@ -1,4 +1,3 @@
-import {isFile, isDirectory} from 'path-type';
 import { promises as fs } from "fs";
 import path from "path";
 type abcText = string;
@@ -39,13 +38,7 @@ export const createOrUpdateHarmonizationRoutine = async (
     annotationCommand: annotationCommandEnum,  
     scoreFilePath: string
 ) => {
-    let dirTarget = "";
-    if (await isFile(scoreFilePath)) {
-        // extract directory
-        dirTarget = `${path.basename(path.dirname(scoreFilePath))}.${annotationCommand}`;
-    } else if (await isDirectory(scoreFilePath)){
-        dirTarget = `${scoreFilePath}.${annotationCommand}` 
-    }
+    const dirTarget = path.join(path.dirname(scoreFilePath), path.parse(scoreFilePath).name+`.${annotationCommandEnum.createHarmonisationFile}.abc`)
     await fs.writeFile(dirTarget, abcText, "utf-8");
     return;
 };
