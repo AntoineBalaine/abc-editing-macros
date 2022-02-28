@@ -1,17 +1,13 @@
 //const vscode = require('vscode');
 
-const isLetter = (char: string) => !!char.match(/[a-g]/i);
-const isNoteToken = (char: string) => /[a-g,']/i.test(char);
-const isOctaveToken = (char: string) => /[,']/i.test(char);
-const isAlterationToken = (char: string) => !!char.match(/[\^=_]/i);
-const isPitchToken = (char: string) => /[a-g,'\^=_]/i.test(char);
+export const isLetter = (char: string) => !!char.match(/[a-g]/i);
+export const isNoteToken = (char: string) => /[a-g,']/i.test(char);
+export const isOctaveToken = (char: string) => /[,']/i.test(char);
+export const isAlterationToken = (char: string) => !!char.match(/[\^=_]/i);
+export const isPitchToken = (char: string) => /[a-g,'\^=_]/i.test(char);
 const NOTES_LOWERCASE = ["a", "b", "c", "d", "e", "f", "g", "a"];
 const NOTES_UPPERCASE = ["A", "B", "C", "D", "E", "F", "G", "A"];
 
-/* 
-   parser: 
-(E,A,^CE) (GFED ^C=B,A,G,) | (F,A,DF) ADFA dBcA | G,DGA B(G^FG) _eGDg | [A,G^C]12 | [A,Fd]12 | [A,Ed]12 | [A,E^c]12 | [D,A,Fd]12 ||
-*/
 const isLowerCase = (str: string) => {
   return str == str.toLowerCase() && str != str.toUpperCase();
 }
@@ -109,13 +105,13 @@ export const transposeHalfStepUpTransform = (note: string) => {
   return note;
 }
 
-type contextObj = {
+export type contextObj = {
   pos: number;
 }
 
 type TransformFunction = (note: string) => string;
 
-const parseNote = (text: string, context: contextObj, transformFunction: TransformFunction): string => {
+export const parseNote = (text: string, context: contextObj, transformFunction: TransformFunction): string => {
   let retString = text.charAt(context.pos);
   let foundLetter = isLetter(retString);
   while (context.pos < text.length) {

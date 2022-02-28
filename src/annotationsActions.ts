@@ -1,5 +1,6 @@
 import { promises as fs } from "fs";
 import path from "path";
+import { contextObj, convertToRestTransform, isAlterationToken, isLetter, parseNote } from "./transpose";
 type abcText = string;
 export enum annotationCommandEnum {
   createHarmonisationFile = "harmonisation",
@@ -33,6 +34,49 @@ enum instrumentFamilies {
 test: expect(fs.existsSync('file.txt')).to.be.true
 */
 
+/*
+  dispatcherFunction: 
+  parse through contents, 
+ */
+type AnnotateDispatcherFunction = (text: abcText, context: contextObj, tag: annotationCommandEnum) => string;
+
+export const findInstrumentCalls = (text: abcText, context: contextObj)=>{
+  /*
+    check if annotation contains tag
+    find open and closing tags. 
+  */
+  let uniqueTags = parseUniqueTags(text).filter(tag=>Object.values(instrumentFamilies).includes(tag as instrumentFamilies));
+  uniqueTags.map(( tag)=>{
+    return annotateDispatcher(text, {pos: 0}, tag as annotationCommandEnum);
+  })
+}
+
+const transformFromTag:AnnotateDispatcherFunction = (text, context, tag)=>{
+  /**
+   * convert any notes to silences until we find a tag
+   * when find a tag, if foundTag===tag, copy text as is until end of closing tag
+   * do not include the tag in the return sring
+   */
+  return "";
+};
+
+const annotateDispatcher: AnnotateDispatcherFunction = (text: abcText, context: contextObj, tag: annotationCommandEnum) => {
+  const contextChar = text.charAt(context.pos);
+  /**
+   * check if
+   * isNote
+   * isAnnotation
+   */
+  if (isLetter(contextChar) || isAlterationToken(contextChar)) {
+    return parseNote(text, context, convertToRestTransform)
+  } else if (contextChar==="\"") {
+    return parseAnnotation(text, context, tag);
+  } else if (context.pos < text.length) {
+    context.pos += 1;
+    return contextChar + annotateDispatcher(text, context, tag);
+  } else return "";
+}
+
 export const createOrUpdateHarmonizationRoutine = async (
   abcText: abcText,
   annotationCommand: annotationCommandEnum,
@@ -54,9 +98,17 @@ export const createOrUpdateInstrumentationRoutine = async (
   return;
 };
 
-const parseTags = (text: abcText) => {
+export const parseUniqueTags = (text: abcText): string[] => {
   let tags = text.match(/(["])(?:(?=(\\?))\2.)*?\1/g);
-  const uniqueTags = [...new Set(tags?.map(tag => tag.replace(/["\/]+/g, "")))];
+  let uniqueTags = [...new Set(tags?.map(tag=>tag.split(/[\\n\s]/))
+    .flat()
+    .filter(tag=>tag)
+    .map(tag => tag.replace(/["\/]+/g, "")))];
+  return uniqueTags;
+}
+
+const parseTags = (text: abcText) => {
+  let uniqueTags = parseUniqueTags(text);
 
   // TODO à changer
   let harmonyTechniquesFile = "";
@@ -82,3 +134,7 @@ const parseTags = (text: abcText) => {
      */
   }
 }
+function parseAnnotation(text: string, context: contextObj, tag: annotationCommandEnum): string {
+  throw new Error("Function not implemented.");
+}
+

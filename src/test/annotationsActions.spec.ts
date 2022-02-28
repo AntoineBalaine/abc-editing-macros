@@ -1,8 +1,8 @@
 import assert from "assert";
+import {expect} from "chai";
 import fs from "fs";
-import { annotationCommandEnum, createOrUpdateHarmonizationRoutine, createOrUpdateInstrumentationRoutine } from "../annotationsActions";
+import { annotationCommandEnum, createOrUpdateHarmonizationRoutine, createOrUpdateInstrumentationRoutine, parseUniqueTags } from "../annotationsActions";
 import path from "path";
-
 const scoreFilePath = "src/test/test_out/BachCelloSuiteDmin.abc";
 const sampleScore = fs.readFileSync(scoreFilePath, "utf-8");
 
@@ -17,6 +17,10 @@ Couches d'arrangement:
     3. familles d'instruments
 */
 describe('Annotate', function() {
+  it("correctly parses unique tags in score", function() {
+      expect(parseUniqueTags("abC,d\"str\"ddDD\"/str\"")).to.eql(["str"]);
+      expect(parseUniqueTags("abC,d\"str \\n soli\"ddDD\"/str \\n /soli\"")).to.eql(["str", "soli"]);
+  });
   it("doesn't allow multiple harmonisation techniques, but does allow multiple instruments/instrument families", function() { });
   it('accepts self closing tags for single hit notes', function() { });
 });
