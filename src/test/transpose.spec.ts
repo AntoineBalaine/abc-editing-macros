@@ -1,5 +1,23 @@
-import { convertToRestTransform, octaviateDownTransform, octaviateUpTransform, transposeHalfStepDown, transposeHalfStepDownTransform, transposeHalfStepUp, transposeHalfStepUpTransform, transposeOctDown, transposeOctUp, turnNotesToRests } from "../transpose";
+import { 
+  convertToRestTransform, 
+  octaviateDownTransform, 
+  octaviateUpTransform, 
+  transposeHalfStepDown, 
+  transposeHalfStepDownTransform, 
+  transposeHalfStepUp, 
+  transposeHalfStepUpTransform, 
+  transposeOctDown, 
+  transposeOctUp, 
+  turnNotesToRests 
+} from "../transpose";
 import assert from "assert";
+
+const fullTextLine = "(E,A,^CE) (GFED ^C=B,A,G,) | (F,A,DF) ADFA dBcA | G,DGA B(G^FG) _eGDg | [A,G^C]12 | [A,Fd]12 | [A,Ed]12 | [A,E^c]12 | [D,A,Fd]12 ||";
+const fullTextLineDownAHalfStep = "(_E,_A,C_E) (_GE_E_D C_B,_A,_G,) | (E,_A,_DE) _A_DE_A _d_Bb_A | _G,_D_G_A _B(_GF_G) d_G_D_g | [_A,_GC]12 | [_A,E_d]12 | [_A,_E_d]12 | [_A,_Ec]12 | [_D,_A,E_d]12 ||";
+const fullTextLineUpAHalfStep = "(F,^A,DF) (^G^FF^D DC,^A,^G,) | (^F,^A,^D^F) ^A^D^F^A ^dC^c^A | ^G,^D^G^A C(^GG^G) e^G^D^g | [^A,^GD]12 | [^A,^F^d]12 | [^A,F^d]12 | [^A,Fd]12 | [^D,^A,^F^d]12 ||";
+const fullTextLineUpAStep = "(F,B,^D^F) (AG^FE ^D^C,B,A,) | (G,B,EG) BEGB e^CdB | A,EAB ^C(A^GA) fAEa | [B,A^D]12 | [B,Ge]12 | [B,^Fe]12 | [B,^F^d]12 | [E,B,Ge]12 ||";
+const fullTextLineDownAStep = "(D,G,BD) (F_EDC BA,G,F,) | (_E,G,C_E) GC_EG cA_bG | F,CFG A(FEF) _dFEf | [G,FB]12 | [G,_Ec]12 | [G,Dc]12 | [G,Db]12 | [C,G,_Ec]12 ||";
+
 
 describe('Transpose and rest', function() {
   describe('using letterTransform functions', function() {
@@ -31,10 +49,12 @@ describe('Transpose and rest', function() {
       assert.equal(transposeHalfStepUpTransform("_G,"), "G,");
     });
     it('down a half step', function() {
+      assert.equal(transposeHalfStepDownTransform("_e"), "d");
+      assert.equal(transposeHalfStepDownTransform("_d"), "c");
+      assert.equal(transposeHalfStepDownTransform("_a"), "g");
       assert.equal(transposeHalfStepDownTransform("^f\'"), "f\'");
       assert.equal(transposeHalfStepDownTransform("^c\'"), "c\'");
       assert.equal(transposeHalfStepDownTransform("f\'"), "e\'");
-      assert.equal(transposeHalfStepDownTransform("F,"), "E,");
       assert.equal(transposeHalfStepDownTransform("c\'"), "b\'");
       assert.equal(transposeHalfStepDownTransform("C,"), "B,");
       assert.equal(transposeHalfStepDownTransform("^g\'"), "g\'");
@@ -43,16 +63,17 @@ describe('Transpose and rest', function() {
       assert.equal(transposeHalfStepDownTransform("g\'"), "_g\'");
       assert.equal(transposeHalfStepDownTransform("G,"), "_G,");
     });
+    it('converts single notes to rest', function() {
+      assert.equal(convertToRestTransform("^g\'"), "z");
+      assert.equal(convertToRestTransform("a\'"), "z");
+      assert.equal(convertToRestTransform("^G,"), "z");
+      assert.equal(convertToRestTransform("g\'"), "z");
+      assert.equal(convertToRestTransform("G,"), "z");
+    })
   });
   describe('using dispatcher function', function() {
 
-    const fullTextLine = "(E,A,^CE) (GFED ^C=B,A,G,) | (F,A,DF) ADFA dBcA | G,DGA B(G^FG) _eGDg | [A,G^C]12 | [A,Fd]12 | [A,Ed]12 | [A,E^c]12 | [D,A,Fd]12 ||";
-    const fullTextLineUpAHalfStep = "(F,^A,DF) (^G^F=F^D DC,^A,^G,) | (^F,^A,^D^F) ^A^D^F^A ^dC^c^A | ^G,^D^G^A C(^GG^G) e^G^D^g | [^A,^GD]12 | [^A,^F^d]12 | [^A,F^d]12 | [^A,Fd]12 | [^D,^A,^F^d]12 ||";
-    const fullTextLineUpAStep = "(E,A,^CE) (GFED ^C=B,A,G,) | (F,A,DF) ADFA dBcA | G,DGA B(G^FG) _eGDg | [A,G^C]12 | [A,Fd]12 | [A,Ed]12 | [A,E^c]12 | [D,A,Fd]12 ||";
-    const fullTextLineDownAHalfStep = "(E,A,^CE) (GFED ^C=B,A,G,) | (F,A,DF) ADFA dBcA | G,DGA B(G^FG) _eGDg | [A,G^C]12 | [A,Fd]12 | [A,Ed]12 | [A,E^c]12 | [D,A,Fd]12 ||";
-    const fullTextLineDownAStep = "(E,A,^CE) (GFED ^C=B,A,G,) | (F,A,DF) ADFA dBcA | G,DGA B(G^FG) _eGDg | [A,G^C]12 | [A,Fd]12 | [A,Ed]12 | [A,E^c]12 | [D,A,Fd]12 ||";
-
-    it('turn notes to rests', function(){
+    it('turn notes to rests', function() {
       assert.equal(turnNotesToRests("C,E,^G,C"), "zzzz");
       assert.equal(turnNotesToRests("CE^Gc"), "zzzz");
       assert.equal(turnNotesToRests("ce^gc'"), "zzzz");
@@ -83,8 +104,8 @@ describe('Transpose and rest', function() {
     });
     it('transpose a full line', function() {
       assert.equal(transposeHalfStepUp(fullTextLine), fullTextLineUpAHalfStep);
-      // assert.equal(transposeStepUp(fullTextLine), fullTextLineUpAStep);
       assert.equal(transposeHalfStepDown(fullTextLine), fullTextLineDownAHalfStep);
+      //assert.equal(transposeStepUp(fullTextLine), fullTextLineUpAStep);
       //assert.equal(transposeStepDown(fullTextLine), fullTextLineDownAStep);
     })
   });

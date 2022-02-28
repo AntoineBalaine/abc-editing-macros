@@ -5,8 +5,8 @@ const isNoteToken = (char: string) => /[a-g,']/i.test(char);
 const isOctaveToken = (char: string) => /[,']/i.test(char);
 const isAlterationToken = (char: string) => !!char.match(/[\^=_]/i);
 const isPitchToken = (char: string) => /[a-g,'\^=_]/i.test(char);
-const NOTES_LOWERCASE = ["a", "b", "c", "d", "e", "f", "g", "a"]
-const NOTES_UPPERCASE = ["A", "B", "C", "D", "E", "F", "G", "A"]
+const NOTES_LOWERCASE = ["a", "b", "c", "d", "e", "f", "g", "a"];
+const NOTES_UPPERCASE = ["A", "B", "C", "D", "E", "F", "G", "A"];
 
 /* 
    parser: 
@@ -43,34 +43,26 @@ export const convertToRestTransform = (note:string) =>{
 */
 
 export const transposeHalfStepDownTransform = (note: string) => {
-  /* is the note alterned?
-     if not, alter it, 
-  */
+  if (note[0]==="=") { 
+    note = note.slice(1);  
+  }
   let firstChar = note.charAt(0);
   if (isAlterationToken(firstChar)) {
-    //is it a sharp or a flat?
-    //if is a sharp
-    //remove the sharp
-    //if is a flat
-    //go to note below
-    //edge cases _C=>Bb _F=>Eb
     if (firstChar === "_") {
       switch (note.charAt(1).toLowerCase()) {
         case "c": note = (isLowerCase(note.charAt(1)) ? "_b" : "_B") + note.slice(2); break;
         case "f": note = (isLowerCase(note.charAt(1)) ? "_e" : "_E") + note.slice(2); break;
         default: {
-          note = isLowerCase(note.charAt(1))
-            ? NOTES_LOWERCASE[NOTES_LOWERCASE.reverse().indexOf(note.charAt(1)) + 1] + note.slice(2)
-            : NOTES_UPPERCASE[NOTES_UPPERCASE.reverse().indexOf(note.charAt(1)) + 1] + note.slice(2);
+          note = (isLowerCase(note.charAt(1))
+            ? [ ...NOTES_LOWERCASE ].reverse()[ [...NOTES_LOWERCASE].reverse().indexOf(note.charAt(1)) + 1] + note.slice(2)
+            : [ ...NOTES_UPPERCASE ].reverse()[ [...NOTES_UPPERCASE].reverse().indexOf(note.charAt(1)) + 1] + note.slice(2));
           break;
         }
       }
     } else if (firstChar === "^") {
       note = note.slice(1);
-    }
+    } 
   } else {
-    //add alteration to note,
-    //edge cases: F & C
     switch (note.charAt(0).toLowerCase()) {
       case "f": note = (isLowerCase(note.charAt(0)) ? "e" : "E") + note.slice(1); break;
       case "c": note = (isLowerCase(note.charAt(0)) ? "b" : "B") + note.slice(1); break;
@@ -84,17 +76,11 @@ export const transposeHalfStepDownTransform = (note: string) => {
   return note;
 }
 export const transposeHalfStepUpTransform = (note: string) => {
-  /* is the note alterned?
-     if not, alter it, 
-  */
+  if (note[0]==="=") { 
+    note = note.slice(1);  
+  }
   let firstChar = note.charAt(0);
   if (isAlterationToken(firstChar)) {
-    //is it a sharp or a flat?
-    //if is a sharp
-    //remove alteration token, move up a step
-    //edge cases: ^E & ^B
-    //if is a flat
-    //remove alteration
     if (firstChar === "^") {
       switch (note.charAt(1).toLowerCase()) {
         case "e": note = (isLowerCase(note.charAt(1)) ? "^f" : "^F") + note.slice(2); break;
@@ -110,8 +96,6 @@ export const transposeHalfStepUpTransform = (note: string) => {
       note = note.slice(1);
     }
   } else {
-    //add alteration to note,
-    //edge cases: E & B
     switch (note.charAt(0).toLowerCase()) {
       case "e": note = (isLowerCase(note.charAt(0)) ? "f" : "F") + note.slice(1); break;
       case "b": note = (isLowerCase(note.charAt(0)) ? "c" : "C") + note.slice(1); break;
@@ -175,7 +159,6 @@ export const transposeHalfStepDown = (input: string) => {
   let context = { pos: 0 };
   return dispatcher(input, context, transposeHalfStepDownTransform);
 }
-
 export const turnNotesToRests = (input: string) => {
   let context = { pos: 0 };
   return dispatcher(input, context, convertToRestTransform);
