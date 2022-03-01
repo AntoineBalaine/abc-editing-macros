@@ -1,5 +1,7 @@
 //const vscode = require('vscode');
 
+import { abcText, annotationCommandEnum, annotationStyle, parseAnnotation } from "./annotationsActions";
+
 export const isLetter = (char: string) => !!char.match(/[a-g]/i);
 export const isNoteToken = (char: string) => /[a-g,']/i.test(char);
 export const isOctaveToken = (char: string) => /[,']/i.test(char);
@@ -27,7 +29,7 @@ export const octaviateUpTransform = (note: string) => {
   else note = note.toLowerCase();
   return note;
 }
-export const convertToRestTransform = (note:string) =>{
+export const convertToRestTransform = (note: string) => {
   note = note.replace(/[\^_,']/g, "");
   note = note.replace(/[a-gA-G]/g, "z");
   return note;
@@ -39,8 +41,8 @@ export const convertToRestTransform = (note:string) =>{
 */
 
 export const transposeHalfStepDownTransform = (note: string) => {
-  if (note[0]==="=") { 
-    note = note.slice(1);  
+  if (note[0] === "=") {
+    note = note.slice(1);
   }
   let firstChar = note.charAt(0);
   if (isAlterationToken(firstChar)) {
@@ -50,14 +52,14 @@ export const transposeHalfStepDownTransform = (note: string) => {
         case "f": note = (isLowerCase(note.charAt(1)) ? "_e" : "_E") + note.slice(2); break;
         default: {
           note = (isLowerCase(note.charAt(1))
-            ? [ ...NOTES_LOWERCASE ].reverse()[ [...NOTES_LOWERCASE].reverse().indexOf(note.charAt(1)) + 1] + note.slice(2)
-            : [ ...NOTES_UPPERCASE ].reverse()[ [...NOTES_UPPERCASE].reverse().indexOf(note.charAt(1)) + 1] + note.slice(2));
+            ? [...NOTES_LOWERCASE].reverse()[[...NOTES_LOWERCASE].reverse().indexOf(note.charAt(1)) + 1] + note.slice(2)
+            : [...NOTES_UPPERCASE].reverse()[[...NOTES_UPPERCASE].reverse().indexOf(note.charAt(1)) + 1] + note.slice(2));
           break;
         }
       }
     } else if (firstChar === "^") {
       note = note.slice(1);
-    } 
+    }
   } else {
     switch (note.charAt(0).toLowerCase()) {
       case "f": note = (isLowerCase(note.charAt(0)) ? "e" : "E") + note.slice(1); break;
@@ -72,8 +74,8 @@ export const transposeHalfStepDownTransform = (note: string) => {
   return note;
 }
 export const transposeHalfStepUpTransform = (note: string) => {
-  if (note[0]==="=") { 
-    note = note.slice(1);  
+  if (note[0] === "=") {
+    note = note.slice(1);
   }
   let firstChar = note.charAt(0);
   if (isAlterationToken(firstChar)) {
@@ -111,7 +113,7 @@ export type contextObj = {
 
 type TransformFunction = (note: string) => string;
 
-export const parseNote = (text: string, context: contextObj, transformFunction: TransformFunction): string => {
+export const parseNote = (text: string, context: contextObj, transformFunction: TransformFunction, tag?: annotationStyle): string => {
   let retString = text.charAt(context.pos);
   let foundLetter = isLetter(retString);
   while (context.pos < text.length) {
@@ -121,16 +123,27 @@ export const parseNote = (text: string, context: contextObj, transformFunction: 
       retString += text.charAt(context.pos);
     } else break;
   }
-  return transformFunction(retString) + dispatcher(text, context, transformFunction);
+  return transformFunction(retString) + dispatcher(text, context, transformFunction, tag);
 }
 
+export const consolidateRests = (text: abcText) => {
+  const rests = text.split(/(?=z\/?\d?)/);
+  /*
+    total timeLength of string?
+    en fractions
+    assemble en fractions de même ordre/similaires
+  */
+  return "";
+};
 
-type dispatcherFunction = (text: string, context: contextObj, transformFunction: TransformFunction) => string;
+type dispatcherFunction = (text: string, context: contextObj, transformFunction: TransformFunction, tag?: annotationStyle) => string;
 
-const dispatcher: dispatcherFunction = (text: string, context: contextObj, transformFunction: TransformFunction) => {
+export const dispatcher: dispatcherFunction = (text, context, transformFunction, tag) => {
   const contextChar = text.charAt(context.pos);
   if (isLetter(contextChar) || isAlterationToken(contextChar)) {
-    return parseNote(text, context, transformFunction)
+    return parseNote(text, context, transformFunction, tag)
+  } else if (contextChar === "\"" && tag) {
+    return parseAnnotation(text, context, tag);
   } else if (context.pos < text.length) {
     context.pos += 1;
     return contextChar + dispatcher(text, context, transformFunction);

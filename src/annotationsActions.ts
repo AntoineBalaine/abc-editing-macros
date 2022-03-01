@@ -1,11 +1,14 @@
 import { promises as fs } from "fs";
 import path from "path";
-import { contextObj, convertToRestTransform, isAlterationToken, isLetter, parseNote } from "./transpose";
-type abcText = string;
+import { contextObj, convertToRestTransform, dispatcher, isAlterationToken, isLetter, parseNote } from "./transpose";
+
+export type abcText = string;
 export enum annotationCommandEnum {
   createHarmonisationFile = "harmonisation",
   createFamiliesFile = "families"
 }
+
+export type annotationStyle = harmonisationStyles | instrumentFamilies;
 
 enum harmonisationStyles {
   soli = "soli",
@@ -16,7 +19,7 @@ enum harmonisationStyles {
   cluster = "clstr"
 }
 
-enum instrumentFamilies {
+export enum instrumentFamilies {
   brass = "br",
   woodwinds = "wd",
   percussion = "prc",
@@ -38,38 +41,24 @@ test: expect(fs.existsSync('file.txt')).to.be.true
   dispatcherFunction: 
   parse through contents, 
  */
-type AnnotateDispatcherFunction = (text: abcText, context: contextObj, tag: annotationCommandEnum) => string;
+type AnnotateDispatcherFunction = (text: abcText, context: contextObj, tag: annotationStyle) => string;
 
-export const findInstrumentCalls = (text: abcText, context: contextObj)=>{
+export const findInstrumentCalls = (text: abcText, context: contextObj) => {
   /*
     check if annotation contains tag
     find open and closing tags. 
   */
-  let uniqueTags = parseUniqueTags(text).filter(tag=>Object.values(instrumentFamilies).includes(tag as instrumentFamilies));
-  uniqueTags.map(( tag)=>{
-    return annotateDispatcher(text, {pos: 0}, tag as annotationCommandEnum);
+  let uniqueFamilyTags = parseUniqueTags(text).filter(tag => Object.values(instrumentFamilies).includes(tag as instrumentFamilies));
+  uniqueFamilyTags.map((tag) => {
+    return dispatcher(text, { pos: 0 }, convertToRestTransform, tag as annotationStyle);
   })
 }
 
-const transformFromTag:AnnotateDispatcherFunction = (text, context, tag)=>{
-  /**
-   * convert any notes to silences until we find a tag
-   * when find a tag, if foundTag===tag, copy text as is until end of closing tag
-   * do not include the tag in the return sring
-   */
-  return "";
-};
-
-const annotateDispatcher: AnnotateDispatcherFunction = (text: abcText, context: contextObj, tag: annotationCommandEnum) => {
+const annotateDispatcher: AnnotateDispatcherFunction = (text, context, tag) => {
   const contextChar = text.charAt(context.pos);
-  /**
-   * check if
-   * isNote
-   * isAnnotation
-   */
   if (isLetter(contextChar) || isAlterationToken(contextChar)) {
     return parseNote(text, context, convertToRestTransform)
-  } else if (contextChar==="\"") {
+  } else if (contextChar === "\"") {
     return parseAnnotation(text, context, tag);
   } else if (context.pos < text.length) {
     context.pos += 1;
@@ -100,41 +89,43 @@ export const createOrUpdateInstrumentationRoutine = async (
 
 export const parseUniqueTags = (text: abcText): string[] => {
   let tags = text.match(/(["])(?:(?=(\\?))\2.)*?\1/g);
-  let uniqueTags = [...new Set(tags?.map(tag=>tag.split(/[\\n\s]/))
+  let uniqueTags = [...new Set(tags?.map(tag => tag.split(/[\\n\s]/))
     .flat()
-    .filter(tag=>tag)
+    .filter(tag => tag)
     .map(tag => tag.replace(/["\/]+/g, "")))];
   return uniqueTags;
 }
 
-const parseTags = (text: abcText) => {
-  let uniqueTags = parseUniqueTags(text);
-
-  // TODO à changer
-  let harmonyTechniquesFile = "";
-  let familyFile = ""
-
-  for (let i = 0; i < uniqueTags.length; i++) {
-
-    if (harmonyTechniquesFile && familyFile) break;
-
-    if (Object.values(harmonisationStyles).includes(uniqueTags[i] as harmonisationStyles) && !harmonyTechniquesFile) {
-      //create harmonyTechniquesFile
-    }
-
-    if (Object.values(instrumentFamilies).includes(uniqueTags[i] as instrumentFamilies) && !familyFile) {
-      //create familyFile;
-    }
-    /**
-     * write harmony to files:
-     * copy all the file, replace all the pitches that are outside of tags by rests
-     * consolidate slurred note's lengths (for midi conversion)
-     * realize chord symbols
-     * apply harmony techniques
-     */
-  }
+const removeInstrumentTagsFromAnnotation = (annotationText: string): string => {
+  const tagsInAnnotation = parseUniqueTags(annotationText).filter(tag=>Object.values(instrumentFamilies).includes(tag as instrumentFamilies));
+  //remove only instrumentTags.
+  tagsInAnnotation.forEach(tagInAnnotation => annotationText = annotationText.replace(new RegExp('\/?' + tagInAnnotation, 'g'), ""));
+  annotationText = JSON.stringify(annotationText.substring(1, annotationText.length-1).trim());
+  return annotationText;
 }
-function parseAnnotation(text: string, context: contextObj, tag: annotationCommandEnum): string {
-  throw new Error("Function not implemented.");
+
+export function parseAnnotation(text: string, context: contextObj, tag: annotationStyle): string {
+  let retStr = "";
+  const endOfOpeningTagAnnotation = text.indexOf("\"", context.pos + 1);
+  const openingAnnotation = removeInstrumentTagsFromAnnotation(text.substring(context.pos, endOfOpeningTagAnnotation+1));
+
+
+  if (text.substring(context.pos).indexOf(tag) < endOfOpeningTagAnnotation) {
+
+    const closingTagIndex = text.indexOf(`\/${tag}`, endOfOpeningTagAnnotation);
+    const closingTagAnnotationStart = text.lastIndexOf("\"", closingTagIndex);
+    const closingTagAnnotationEnd = text.indexOf("\"", closingTagAnnotationStart+1);
+    const closingAnnotation = removeInstrumentTagsFromAnnotation(text.substring(closingTagAnnotationStart, closingTagAnnotationEnd+1));
+
+    retStr = openingAnnotation + text.substring(endOfOpeningTagAnnotation+1, closingTagAnnotationStart) + closingAnnotation;
+    context.pos = closingTagAnnotationEnd + 1;
+
+  } else {
+
+    retStr = openingAnnotation;
+    context.pos = endOfOpeningTagAnnotation + 1;
+
+  }
+  return retStr + dispatcher(text, context, convertToRestTransform, tag);
 }
 

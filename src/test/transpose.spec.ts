@@ -1,4 +1,5 @@
 import { 
+  consolidateRests,
   convertToRestTransform, 
   octaviateDownTransform, 
   octaviateUpTransform, 
@@ -108,6 +109,11 @@ describe('Transpose and rest', function() {
       //assert.equal(transposeStepUp(fullTextLine), fullTextLineUpAStep);
       //assert.equal(transposeStepDown(fullTextLine), fullTextLineDownAStep);
     })
+  });
+  describe('consolidate rests', function() {
+    it('consolidates contiguous single-digit rests', function(){
+      assert.equal(consolidateRests("zz"), "z2");
+    });
   });
 });
 
