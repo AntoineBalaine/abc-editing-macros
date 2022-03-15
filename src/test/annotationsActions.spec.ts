@@ -1,7 +1,7 @@
 import assert from "assert";
 import { expect } from "chai";
 import fs from "fs";
-import { annotationCommandEnum, createOrUpdateHarmonizationRoutine, createOrUpdateInstrumentationRoutine, parseUniqueTags, instrumentFamilies } from "../annotationsActions";
+import { annotationCommandEnum, createOrUpdateHarmonizationRoutine, createOrUpdateInstrumentationRoutine, parseUniqueTags, instrumentFamilies, findInstrumentCalls } from "../annotationsActions";
 import path from "path";
 import { convertToRestTransform, dispatcher } from "../transpose";
 const scoreFilePath = "src/test/test_out/BachCelloSuiteDmin.abc";
@@ -47,11 +47,26 @@ describe('Arrange', function() {
     //fill with slashes or rests, depending if this is a leadsheet or a score.
     it('strips annotations of any instrument references', function() {
       let annotation = "\"str soli\"A,B,CDEFG\"\/str\"";
-      assert.equal(dispatcher(annotation, { pos: 0 }, () => (""), instrumentFamilies.strings), "\"soli\"A,B,CDEFG\"\"");
+      assert.equal(dispatcher(annotation, { pos: 0 }, () => (""), instrumentFamilies.strings), "\"soli\"A,B,CDEFG");
     });
     it('turns all parts outside of instrument tags into rests', function(){
       let annotation = "AbcD,E,\"str soli\"A,B,CDEFG\"\/str\"D^FAc";
-      assert.equal(dispatcher(annotation, { pos: 0 }, convertToRestTransform, instrumentFamilies.strings), "zzzzz\"soli\"A,B,CDEFG\"\"zzzz");
+      assert.equal(dispatcher(annotation, { pos: 0 }, convertToRestTransform, instrumentFamilies.strings), "zzzzz\"soli\"A,B,CDEFGzzzz");
+    });
+    it('parses multiple instruments into separate voices', function(){
+      let annotation = "AbcD,E,\"str wd soli\"A,B,CDEFG\"\/str \/wd \"D^FAc";
+      expect(findInstrumentCalls(annotation, {pos:0})).to.eql([{ str: "zzzzz\"soli\"A,B,CDEFGzzzz" }, { wd: "zzzzz\"soli\"A,B,CDEFGzzzz" }]);
+    });
+    it('parses overlapping tags for multiple instruments', function(){
+      let annotation = "Ab\"wd\"cD,E,\"str soli\"A,B,CDEFG\"\/str \/wd \"D^FAc";
+      expect(findInstrumentCalls(annotation, {pos:0})).to.eql([{ wd: "zzcD,E,\"soli\"A,B,CDEFGzzzz" }, { str: "zzzzz\"soli\"A,B,CDEFGzzzz" }]);
+
+    });
+/*     it('meshes multiple-line ensemble score into score-systems', function(){
+
+    });
+    it('adds voices/instruments nomenclature to header of document', function(){
+
     });
     it('creates instrumentFamilies file with indicated families', function() {
       createOrUpdateInstrumentationRoutine(sampleScore, annotationCommandEnum.createFamiliesFile, scoreFilePath);
@@ -61,7 +76,7 @@ describe('Arrange', function() {
     });
     it('writes instrument-tagged sections to file', function() {
       //check that file contains instrument tags & their content
-    });
+    }); */
 
   });
 });

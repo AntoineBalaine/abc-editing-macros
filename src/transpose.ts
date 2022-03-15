@@ -111,7 +111,7 @@ export type contextObj = {
   pos: number;
 }
 
-type TransformFunction = (note: string) => string;
+export type TransformFunction = (note: string) => string;
 
 export const parseNote = (text: string, context: contextObj, transformFunction: TransformFunction, tag?: annotationStyle): string => {
   let retString = text.charAt(context.pos);
@@ -143,7 +143,7 @@ export const dispatcher: dispatcherFunction = (text, context, transformFunction,
   if (isLetter(contextChar) || isAlterationToken(contextChar)) {
     return parseNote(text, context, transformFunction, tag)
   } else if (contextChar === "\"" && tag) {
-    return parseAnnotation(text, context, tag);
+    return parseAnnotation(text, context, tag, transformFunction);
   } else if (context.pos < text.length) {
     context.pos += 1;
     return contextChar + dispatcher(text, context, transformFunction);

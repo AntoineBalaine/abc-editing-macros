@@ -1,6 +1,6 @@
 import { promises as fs } from "fs";
 import path from "path";
-import { contextObj, convertToRestTransform, dispatcher, isAlterationToken, isLetter, parseNote } from "./transpose";
+import { contextObj, convertToRestTransform, dispatcher, isAlterationToken, isLetter, parseNote, TransformFunction, turnNotesToRests } from "./transpose";
 
 export type abcText = string;
 export enum annotationCommandEnum {
@@ -49,22 +49,12 @@ export const findInstrumentCalls = (text: abcText, context: contextObj) => {
     find open and closing tags. 
   */
   let uniqueFamilyTags = parseUniqueTags(text).filter(tag => Object.values(instrumentFamilies).includes(tag as instrumentFamilies));
-  uniqueFamilyTags.map((tag) => {
-    return dispatcher(text, { pos: 0 }, convertToRestTransform, tag as annotationStyle);
+  const parsedFamilies =  uniqueFamilyTags.map((tag) => {
+    return {[tag]: dispatcher(text, { pos: 0 }, convertToRestTransform, tag as annotationStyle) };
   })
+  return parsedFamilies;
 }
 
-const annotateDispatcher: AnnotateDispatcherFunction = (text, context, tag) => {
-  const contextChar = text.charAt(context.pos);
-  if (isLetter(contextChar) || isAlterationToken(contextChar)) {
-    return parseNote(text, context, convertToRestTransform)
-  } else if (contextChar === "\"") {
-    return parseAnnotation(text, context, tag);
-  } else if (context.pos < text.length) {
-    context.pos += 1;
-    return contextChar + annotateDispatcher(text, context, tag);
-  } else return "";
-}
 
 export const createOrUpdateHarmonizationRoutine = async (
   abcText: abcText,
@@ -104,28 +94,43 @@ const removeInstrumentTagsFromAnnotation = (annotationText: string): string => {
   return annotationText;
 }
 
-export function parseAnnotation(text: string, context: contextObj, tag: annotationStyle): string {
+export function parseAnnotation(text: string, context: contextObj, tag: annotationStyle, transformFunction: TransformFunction): string {
   let retStr = "";
-  const endOfOpeningTagAnnotation = text.indexOf("\"", context.pos + 1);
-  const openingAnnotation = removeInstrumentTagsFromAnnotation(text.substring(context.pos, endOfOpeningTagAnnotation+1));
+  const sections = text.substring(context.pos).split(/(\"[^\".]*\")/g).filter(n=>n);
+  //subdivise le tableau entre sections contenues dans les tags, et les autres
 
+  let subSections = [];
 
-  if (text.substring(context.pos).indexOf(tag) < endOfOpeningTagAnnotation) {
-
-    const closingTagIndex = text.indexOf(`\/${tag}`, endOfOpeningTagAnnotation);
-    const closingTagAnnotationStart = text.lastIndexOf("\"", closingTagIndex);
-    const closingTagAnnotationEnd = text.indexOf("\"", closingTagAnnotationStart+1);
-    const closingAnnotation = removeInstrumentTagsFromAnnotation(text.substring(closingTagAnnotationStart, closingTagAnnotationEnd+1));
-
-    retStr = openingAnnotation + text.substring(endOfOpeningTagAnnotation+1, closingTagAnnotationStart) + closingAnnotation;
-    context.pos = closingTagAnnotationEnd + 1;
-
-  } else {
-
-    retStr = openingAnnotation;
-    context.pos = endOfOpeningTagAnnotation + 1;
-
+  if (sections[0][0]==="\"" && !sections[0].includes(tag)){
+    const purgedSections = removeInstrumentTagsFromAnnotation(sections[0]).replace(/\"(\s*)?\"/g,"");
+     context.pos = context.pos + sections[0].length;
+     return purgedSections + dispatcher(text, context, transformFunction, tag)
+    
+  } else { 
+  for (let i=0; i<sections.length; i++){
+    if (sections[i][0]==="\"" && sections[i].includes(tag)){
+      let tagsection = [removeInstrumentTagsFromAnnotation(sections[i])];
+      while(i<sections.length){
+        i+=1;
+        if (sections[i][0]==="\"" && sections[i].includes(`/${tag}`)){
+          tagsection.push(removeInstrumentTagsFromAnnotation( sections[i] )); break; 
+        } else if (sections[i][0]==="\"" && !sections[i].includes(`/${tag}`)){
+          tagsection.push(removeInstrumentTagsFromAnnotation(sections[i]));
+        } else tagsection.push(sections[i]);
+      }
+      subSections.push(tagsection);
+    } else {
+      subSections.push(sections[i]);
+    }
   }
-  return retStr + dispatcher(text, context, convertToRestTransform, tag);
+  return subSections.map(subSection=>{
+    if (Array.isArray(subSection)){
+      return [removeInstrumentTagsFromAnnotation(subSection[0]),
+      ...subSection.slice(1, subSection.length-1),
+      removeInstrumentTagsFromAnnotation(subSection[subSection.length-1])]
+    } else return turnNotesToRests(subSection)
+  }).flat().join("").replace(/\"(\s*)?\"/g,"");
+ }
 }
+
 
