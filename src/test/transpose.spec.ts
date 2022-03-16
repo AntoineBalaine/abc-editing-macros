@@ -110,10 +110,10 @@ describe('Transpose and rest', function() {
       //assert.equal(transposeStepDown(fullTextLine), fullTextLineDownAStep);
     })
   });
-  describe('consolidate rests', function() {
+/*   describe('consolidate rests', function() {
     it('consolidates contiguous single-digit rests', function(){
       assert.equal(consolidateRests("zz"), "z2");
     });
-  });
+  }); */
 });
 

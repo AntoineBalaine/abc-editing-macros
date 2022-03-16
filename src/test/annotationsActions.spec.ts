@@ -36,15 +36,13 @@ describe('Arrange', function() {
 
       assert.ok(fs.existsSync(targetFile))
     });
-    it('writes harmonisation-tagged sections to file', function() {
+/*     it('writes harmonisation-tagged sections to file', function() {
       //check that file contains harmony tags
+      //in the case that some chords symbols are not provided for either curNote/curBar, do not harmonise
 
-    });
-    //in the case that some chords symbols are not provided for either curNote/curBar, do not harmonise
+    }); */
   });
   describe('using annotations in score', function() {
-    //distribute to instruments
-    //fill with slashes or rests, depending if this is a leadsheet or a score.
     it('strips annotations of any instrument references', function() {
       let annotation = "\"str soli\"A,B,CDEFG\"\/str\"";
       assert.equal(dispatcher(annotation, { pos: 0 }, () => (""), instrumentFamilies.strings), "\"soli\"A,B,CDEFG");
@@ -60,6 +58,16 @@ describe('Arrange', function() {
     it('parses overlapping tags for multiple instruments', function(){
       let annotation = "Ab\"wd\"cD,E,\"str soli\"A,B,CDEFG\"\/str \/wd \"D^FAc";
       expect(findInstrumentCalls(annotation, {pos:0})).to.eql([{ wd: "zzcD,E,\"soli\"A,B,CDEFGzzzz" }, { str: "zzzzz\"soli\"A,B,CDEFGzzzz" }]);
+
+    });
+    it('parses overlapping tags containing bar lines', function(){
+      let annotation = "Ab\"wd\"cD,E, | \"str soli\"A,B,CD | EFG\"\/str \/wd \"D^FAc";
+      expect(findInstrumentCalls(annotation, {pos:0})).to.eql([{ wd: "zzcD,E, | \"soli\"A,B,CD | EFGzzzz" }, { str: "zzzzz | \"soli\"A,B,CD | EFGzzzz" }]);
+
+    });
+    it('parses overlapping tags over line breaks', function(){
+      let annotation = "Ab\"wd\"cD,E, | \"str soli\"A,B,CD | \n EFG\"\/str \/wd \"D^FAc";
+      expect(findInstrumentCalls(annotation, {pos:0})).to.eql([{ wd: "zzcD,E, | \"soli\"A,B,CD | \n EFGzzzz" }, { str: "zzzzz | \"soli\"A,B,CD | \n EFGzzzz" }]);
 
     });
 /*     it('meshes multiple-line ensemble score into score-systems', function(){
@@ -81,7 +89,7 @@ describe('Arrange', function() {
   });
 });
 
-describe('Harmonise', function() {
+/* describe('Harmonise', function() {
   describe('parse chord symbols in annotations', function() {
     it('extract triad chords symbols from annotations', function() { });
     it('extract 7th/9th chords from annotations', function() { });
@@ -89,4 +97,4 @@ describe('Harmonise', function() {
     it('builds chord harmonisation from extracted chord symbols', function() { });
     it('builds chord harmonisation under indicated top notes', function() { });
   });
-});
+}); */

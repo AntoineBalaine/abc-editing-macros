@@ -136,7 +136,7 @@ export const consolidateRests = (text: abcText) => {
   return "";
 };
 
-type dispatcherFunction = (text: string, context: contextObj, transformFunction: TransformFunction, tag?: annotationStyle) => string;
+export type dispatcherFunction = (text: string, context: contextObj, transformFunction: TransformFunction, tag?: annotationStyle) => string;
 
 export const dispatcher: dispatcherFunction = (text, context, transformFunction, tag) => {
   const contextChar = text.charAt(context.pos);
@@ -146,7 +146,7 @@ export const dispatcher: dispatcherFunction = (text, context, transformFunction,
     return parseAnnotation(text, context, tag, transformFunction);
   } else if (context.pos < text.length) {
     context.pos += 1;
-    return contextChar + dispatcher(text, context, transformFunction);
+    return contextChar + dispatcher(text, context, transformFunction, tag);
   } else return "";
 }
 
