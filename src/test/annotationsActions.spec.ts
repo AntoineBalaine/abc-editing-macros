@@ -70,21 +70,23 @@ describe('Arrange', function() {
       expect(findInstrumentCalls(annotation, {pos:0})).to.eql([{ wd: "zzcD,E, | \"soli\"A,B,CD | \n EFGzzzz" }, { str: "zzzzz | \"soli\"A,B,CD | \n EFGzzzz" }]);
 
     });
-/*     it('meshes multiple-line ensemble score into score-systems', function(){
-
-    });
-    it('adds voices/instruments nomenclature to header of document', function(){
-
-    });
+/*     it('accomodates line-comments', function(){
+      let annotation = 
+`% use the w: field to add lyrics, with each word lined up on a note
+A A A A | A A A A |
+w:words line up on notes
+%
+% to align syllables on notes, use hyphens and/or spaces to split the words up
+A A A A | A A A A |`
+    }); */
+});
+/*  
     it('creates instrumentFamilies file with indicated families', function() {
       createOrUpdateInstrumentationRoutine(sampleScore, annotationCommandEnum.createFamiliesFile, scoreFilePath);
       const targetFile = path.join(path.dirname(scoreFilePath), path.parse(scoreFilePath).name + `.${annotationCommandEnum.createFamiliesFile}.abc`)
 
       assert.ok(fs.existsSync(targetFile))
     });
-    it('writes instrument-tagged sections to file', function() {
-      //check that file contains instrument tags & their content
-    }); */
 
   });
 });
@@ -97,4 +99,5 @@ describe('Arrange', function() {
     it('builds chord harmonisation from extracted chord symbols', function() { });
     it('builds chord harmonisation under indicated top notes', function() { });
   });
-}); */
+  */
+}); 

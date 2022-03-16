@@ -1,6 +1,9 @@
 import { 
   consolidateRests,
   convertToRestTransform, 
+  dispatcher, 
+  isNomenclatureLine, 
+  isNoteToken, 
   octaviateDownTransform, 
   octaviateUpTransform, 
   transposeHalfStepDown, 
@@ -12,6 +15,8 @@ import {
   turnNotesToRests 
 } from "../transpose";
 import assert from "assert";
+import { abcText, annotationStyle, findInstrumentCalls } from "../annotationsActions";
+import { expect } from "chai";
 
 const fullTextLine = "(E,A,^CE) (GFED ^C=B,A,G,) | (F,A,DF) ADFA dBcA | G,DGA B(G^FG) _eGDg | [A,G^C]12 | [A,Fd]12 | [A,Ed]12 | [A,E^c]12 | [D,A,Fd]12 ||";
 const fullTextLineDownAHalfStep = "(_E,_A,C_E) (_GE_E_D C_B,_A,_G,) | (E,_A,_DE) _A_DE_A _d_Bb_A | _G,_D_G_A _B(_GF_G) d_G_D_g | [_A,_GC]12 | [_A,E_d]12 | [_A,_E_d]12 | [_A,_Ec]12 | [_D,_A,E_d]12 ||";
@@ -108,6 +113,40 @@ describe('Transpose and rest', function() {
       assert.equal(transposeHalfStepDown(fullTextLine), fullTextLineDownAHalfStep);
       //assert.equal(transposeStepUp(fullTextLine), fullTextLineUpAStep);
       //assert.equal(transposeStepDown(fullTextLine), fullTextLineDownAStep);
+    })
+  });
+  describe('Nomenclature', function(){
+    let nomenclature = "% this is a line comment";
+    let nomenclature2 = "w: lyrics to a song";
+    let nomenclature3 = "K: key change";
+    let notNomenclature = "blalbalbala";
+    describe('using detector function', function(){
+      it('recognizes line comments', function(){
+        assert.ok(isNomenclatureLine(nomenclature as abcText, {pos:0}))
+        assert.ok(isNomenclatureLine(nomenclature2 as abcText, {pos:0}))
+        assert.ok(isNomenclatureLine(nomenclature3 as abcText, {pos:0}))
+        assert.ok(!isNomenclatureLine(notNomenclature as abcText, {pos:0}))
+      });
+    })
+    describe('using dispatcher function', function(){
+      it('recognizes line comments', function(){
+        assert.equal(dispatcher(nomenclature as abcText, {pos:0}, ()=>"", "" as annotationStyle), nomenclature)
+        assert.equal(dispatcher(nomenclature2 as abcText, {pos:0}, ()=>"", "" as annotationStyle), nomenclature2)
+        assert.equal(dispatcher(nomenclature3 as abcText, {pos:0}, ()=>"", "" as annotationStyle), nomenclature3)
+        assert.notEqual(dispatcher(notNomenclature as abcText, {pos:0}, ()=>"", "" as annotationStyle), notNomenclature)
+      });
+      it('parses overlapping tags, preserves line comments', function(){
+        let annotation = "Ab\"wd\"cD,E, |\n% this is a linecomment \n\"str soli\"A,B,CD |\n EFG\"\/str \/wd \"D^FAc";
+        expect(findInstrumentCalls(annotation, {pos:0})).to.eql([{ wd: "zzcD,E, |\n% this is a linecomment \n\"soli\"A,B,CD |\n EFGzzzz" }, { str: "zzzzz |\n% this is a linecomment \n\"soli\"A,B,CD |\n EFGzzzz" }]);
+      });
+      it('parses overlapping tags, preserves lyrics\' lines', function(){
+        let annotation = "Ab\"wd\"cD,E, |\nw: these are some lyrics\n\"str soli\"A,B,CD |\n EFG\"\/str \/wd \"D^FAc";
+        expect(findInstrumentCalls(annotation, {pos:0})).to.eql([{ wd: "zzcD,E, |\nw: these are some lyrics\n\"soli\"A,B,CD |\n EFGzzzz" }, { str: "zzzzz |\nw: these are some lyrics\n\"soli\"A,B,CD |\n EFGzzzz" }]);
+      });
+      it('parses overlapping tags, preserves keychanges', function(){
+        let annotation = "Ab\"wd\"cD,E, |\nK: this is a key change\n\"str soli\"A,B,CD |\n EFG\"\/str \/wd \"D^FAc";
+        expect(findInstrumentCalls(annotation, {pos:0})).to.eql([{ wd: "zzcD,E, |\nK: this is a key change\n\"soli\"A,B,CD |\n EFGzzzz" }, { str: "zzzzz |\nK: this is a key change\n\"soli\"A,B,CD |\n EFGzzzz" }]);
+      });
     })
   });
 /*   describe('consolidate rests', function() {

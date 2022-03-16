@@ -136,7 +136,17 @@ export const consolidateRests = (text: abcText) => {
   return "";
 };
 
-export type dispatcherFunction = (text: string, context: contextObj, transformFunction: TransformFunction, tag?: annotationStyle) => string;
+export type dispatcherFunction = (text: abcText, context: contextObj, transformFunction: TransformFunction, tag?: annotationStyle) => string;
+
+export const isNomenclatureLine = (text: abcText, context: contextObj)=>{
+  return /(([a-zA-Z]:)|%)/i.test(text.substring(context.pos));
+};
+export const jumpToEndOfNomenclature = (text: abcText, context: contextObj, transformFunction: TransformFunction, tag?: annotationStyle) =>{
+  const nextLineBreak = text.indexOf("\n", context.pos+1);
+  const nomenclature = text.substring(context.pos, nextLineBreak<0?text.length : nextLineBreak) ;
+  context.pos = nextLineBreak<0?text.length : nextLineBreak;
+  return nomenclature + dispatcher(text, context, transformFunction, tag);
+}
 
 export const dispatcher: dispatcherFunction = (text, context, transformFunction, tag) => {
   const contextChar = text.charAt(context.pos);
@@ -144,6 +154,12 @@ export const dispatcher: dispatcherFunction = (text, context, transformFunction,
     return parseNote(text, context, transformFunction, tag)
   } else if (contextChar === "\"" && tag) {
     return parseAnnotation(text, context, tag, transformFunction);
+  }else if (contextChar === "\n" && isNomenclatureLine(text, { pos: context.pos+1 })){
+    //skip to next line
+    return jumpToEndOfNomenclature(text, context, transformFunction, tag);
+  }else if (context.pos===0 && isNomenclatureLine(text, { pos: context.pos})){
+    //skip to next line
+    return jumpToEndOfNomenclature(text, context, transformFunction, tag);
   } else if (context.pos < text.length) {
     context.pos += 1;
     return contextChar + dispatcher(text, context, transformFunction, tag);
