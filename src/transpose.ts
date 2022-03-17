@@ -30,7 +30,7 @@ export const octaviateUpTransform = (note: string) => {
   return note;
 }
 export const convertToRestTransform = (note: string) => {
-  note = note.replace(/[\^_,']/g, "");
+  note = note.replace(/[\^_,'=]/g, "");
   note = note.replace(/[a-gA-G]/g, "z");
   return note;
 }
@@ -148,12 +148,21 @@ export const jumpToEndOfNomenclature = (text: abcText, context: contextObj, tran
   return nomenclature + dispatcher(text, context, transformFunction, tag);
 }
 
+export const jumpToEndOfSymbol:dispatcherFunction= (text, context, transformFunction, tag) =>{
+  const endOfSymbolIndex = text.indexOf("!", context.pos+1);
+  const symbol = text.substring(context.pos, endOfSymbolIndex+1);
+  context.pos = context.pos + symbol.length;
+  return symbol + dispatcher(text, context, transformFunction, tag)
+}
+
 export const dispatcher: dispatcherFunction = (text, context, transformFunction, tag) => {
   const contextChar = text.charAt(context.pos);
   if (isLetter(contextChar) || isAlterationToken(contextChar)) {
     return parseNote(text, context, transformFunction, tag)
   } else if (contextChar === "\"" && tag) {
     return parseAnnotation(text, context, tag, transformFunction);
+  }else if (contextChar === "!"){
+    return jumpToEndOfSymbol(text, context, transformFunction, tag);
   }else if (contextChar === "\n" && isNomenclatureLine(text, { pos: context.pos+1 })){
     //skip to next line
     return jumpToEndOfNomenclature(text, context, transformFunction, tag);

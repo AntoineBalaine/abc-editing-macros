@@ -70,15 +70,6 @@ describe('Arrange', function() {
       expect(findInstrumentCalls(annotation, {pos:0})).to.eql([{ wd: "zzcD,E, | \"soli\"A,B,CD | \n EFGzzzz" }, { str: "zzzzz | \"soli\"A,B,CD | \n EFGzzzz" }]);
 
     });
-/*     it('accomodates line-comments', function(){
-      let annotation = 
-`% use the w: field to add lyrics, with each word lined up on a note
-A A A A | A A A A |
-w:words line up on notes
-%
-% to align syllables on notes, use hyphens and/or spaces to split the words up
-A A A A | A A A A |`
-    }); */
 });
 /*  
     it('creates instrumentFamilies file with indicated families', function() {

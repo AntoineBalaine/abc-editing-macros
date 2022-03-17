@@ -43,7 +43,8 @@ test: expect(fs.existsSync('file.txt')).to.be.true
  */
 type AnnotateDispatcherFunction = (text: abcText, context: contextObj, tag: annotationStyle) => string;
 
-export const findInstrumentCalls = (text: abcText, context: contextObj) => {
+export type InstrumentCalls = { [ key in instrumentFamilies ]: abcText};
+export const findInstrumentCalls = (text: abcText, context: contextObj): InstrumentCalls[] => {
   /*
     check if annotation contains tag
     find open and closing tags. 
@@ -52,7 +53,7 @@ export const findInstrumentCalls = (text: abcText, context: contextObj) => {
   const parsedFamilies =  uniqueFamilyTags.map((tag) => {
     return {[tag]: dispatcher(text, { pos: 0 }, convertToRestTransform, tag as annotationStyle) };
   })
-  return parsedFamilies;
+  return parsedFamilies as InstrumentCalls[];
 }
 
 

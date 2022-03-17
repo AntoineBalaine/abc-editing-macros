@@ -4,6 +4,7 @@ import {
   dispatcher, 
   isNomenclatureLine, 
   isNoteToken, 
+  jumpToEndOfSymbol, 
   octaviateDownTransform, 
   octaviateUpTransform, 
   transposeHalfStepDown, 
@@ -127,6 +128,10 @@ describe('Transpose and rest', function() {
         assert.ok(isNomenclatureLine(nomenclature3 as abcText, {pos:0}))
         assert.ok(!isNomenclatureLine(notNomenclature as abcText, {pos:0}))
       });
+      it('leave symbols untouched', function(){
+        const symbol = "!fermata!";
+        assert.equal(jumpToEndOfSymbol(symbol as abcText, {pos:0}, ()=>"", "" as annotationStyle), symbol);
+      });
     })
     describe('using dispatcher function', function(){
       it('recognizes line comments', function(){
@@ -146,6 +151,10 @@ describe('Transpose and rest', function() {
       it('parses overlapping tags, preserves keychanges', function(){
         let annotation = "Ab\"wd\"cD,E, |\nK: this is a key change\n\"str soli\"A,B,CD |\n EFG\"\/str \/wd \"D^FAc";
         expect(findInstrumentCalls(annotation, {pos:0})).to.eql([{ wd: "zzcD,E, |\nK: this is a key change\n\"soli\"A,B,CD |\n EFGzzzz" }, { str: "zzzzz |\nK: this is a key change\n\"soli\"A,B,CD |\n EFGzzzz" }]);
+      });
+      it('leave symbols untouched', function(){
+        const symbol = "abc!fermata!abc";
+        assert.equal(dispatcher(symbol as abcText, {pos:0}, (note: string)=>note, "" as annotationStyle), symbol);
       });
     })
   });
