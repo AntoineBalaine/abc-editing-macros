@@ -1,8 +1,10 @@
 import { 
   consolidateRests,
+  convertToEnharmonia,
   convertToRestTransform, 
   dispatcher, 
   isNomenclatureLine, 
+  isNomenclatureTag, 
   isNoteToken, 
   jumpToEndOfSymbol, 
   octaviateDownTransform, 
@@ -77,6 +79,53 @@ describe('Transpose and rest', function() {
       assert.equal(convertToRestTransform("g\'"), "z");
       assert.equal(convertToRestTransform("G,"), "z");
     })
+    it('converts enharmonias without key indication', function() {
+      assert.equal(convertToEnharmonia("^c"), "_d");
+      assert.equal(convertToEnharmonia("^d"), "_e");
+      assert.equal(convertToEnharmonia("^e"), "f");
+      assert.equal(convertToEnharmonia("^f"), "_g");
+      assert.equal(convertToEnharmonia("^g"), "_a");
+      assert.equal(convertToEnharmonia("^a"), "_b");
+      assert.equal(convertToEnharmonia("^b"), "c'");
+      assert.equal(convertToEnharmonia("c'"), "^b");
+      assert.equal(convertToEnharmonia("_c"), "B");
+      assert.equal(convertToEnharmonia("_f"), "e");
+
+      assert.equal(convertToEnharmonia("^C"), "_D");
+      assert.equal(convertToEnharmonia("^D"), "_E");
+      assert.equal(convertToEnharmonia("^E"), "F");
+      assert.equal(convertToEnharmonia("^F"), "_G");
+      assert.equal(convertToEnharmonia("^G"), "_A");
+      assert.equal(convertToEnharmonia("^A"), "_B");
+      assert.equal(convertToEnharmonia("^B"), "c");
+      assert.equal(convertToEnharmonia("C"), "^B,");
+      assert.equal(convertToEnharmonia("_C,"), "B,,");
+      assert.equal(convertToEnharmonia("_F"), "E");
+    });
+    it('converts enharmonias to match the given key', function() {
+      assert.equal(convertToEnharmonia("^c", `[K: Ab]` as const), "_d");
+      assert.equal(convertToEnharmonia("^d", `[K: Bb minor]` as const), "_e");
+      assert.equal(convertToEnharmonia("^e", `[K: C]` as const), "f");
+      assert.equal(convertToEnharmonia("^f", `[K: Db]` as const), "_g");
+      assert.equal(convertToEnharmonia("^g", `[K: Bb minor]` as const), "_a");
+      assert.equal(convertToEnharmonia("^a", `[K: F]` as const), "_b");
+      assert.equal(convertToEnharmonia("^b", `[K: Ab]` as const), "c'");
+      assert.equal(convertToEnharmonia("_c", `[K: C]` as const), "B");
+      assert.equal(convertToEnharmonia("_f", `[K: C]` as const), "e");
+
+      assert.equal(convertToEnharmonia("^C", `[K: Gb]` as const), "_D");
+      assert.equal(convertToEnharmonia("^D", `[K: Eb minor]` as const), "_E");
+      assert.equal(convertToEnharmonia("^E", `[K: Eb minor]` as const), "F");
+      assert.equal(convertToEnharmonia("^F", `[K: Db]` as const), "_G");
+      assert.equal(convertToEnharmonia("^G", `[K: Ab]` as const), "_A");
+      assert.equal(convertToEnharmonia("^A", `[K: Ab]` as const), "_B");
+
+      assert.equal(convertToEnharmonia("_D", `[K: A]` as const), "^C");
+      assert.equal(convertToEnharmonia("_E", `[K: C# minor]` as const), "^D");
+      assert.equal(convertToEnharmonia("_G", `[K: C# minor]` as const), "^F");
+      assert.equal(convertToEnharmonia("_A", `[K: F# minor]` as const), "^G");
+      assert.equal(convertToEnharmonia("_B", `[K: B]` as const), "^A");
+    });
   });
   describe('using dispatcher function', function() {
 
@@ -114,8 +163,44 @@ describe('Transpose and rest', function() {
       assert.equal(transposeHalfStepDown(fullTextLine), fullTextLineDownAHalfStep);
       //assert.equal(transposeStepUp(fullTextLine), fullTextLineUpAStep);
       //assert.equal(transposeStepDown(fullTextLine), fullTextLineDownAStep);
-    })
+    });
+    /*   
+    it('converts enharmonias', function() {
+      find the key from the header, find the key from the text.      
+
+
+      //assert.equal(dispatcher("^c"as abcText, {pos: 0}, convertToEnharmonia), "_d");
+
+       assert.equal(convertToEnharmonia("^c"), "_d");
+      assert.equal(convertToEnharmonia("^d"), "_e");
+      assert.equal(convertToEnharmonia("^e"), "f");
+      assert.equal(convertToEnharmonia("^f"), "_g");
+      assert.equal(convertToEnharmonia("^g"), "_a");
+      assert.equal(convertToEnharmonia("^a"), "_b");
+      assert.equal(convertToEnharmonia("^b"), "c'");
+      assert.equal(convertToEnharmonia("_c"), "B");
+      assert.equal(convertToEnharmonia("_f"), "e");
+    });
   });
+describe('using file structure', function() {
+    it('provides courtesy accidentals for the current measure', function(){
+      assert.ok(false);
+    });
+    it('provides enharmonias depending on current key', function(){
+      assert.ok(false);
+    });
+    it('transpose score header', function(){
+      assert.ok(false);
+    });
+    it('transpose key changes in nomenclature brackets', function(){
+      assert.ok(false);
+    });
+    it('transpose full score including the header', function(){
+      assert.ok(false);
+    });
+  }); 
+  */
+
   describe('Nomenclature', function(){
     let nomenclature = "% this is a line comment";
     let nomenclature2 = "w: lyrics to a song";
@@ -131,6 +216,10 @@ describe('Transpose and rest', function() {
       it('leave symbols untouched', function(){
         const symbol = "!fermata!";
         assert.equal(jumpToEndOfSymbol(symbol as abcText, {pos:0}, ()=>"", "" as annotationStyle), symbol);
+      });
+      it('differenciates chord from nomenclature brackets', function(){
+        assert.ok(isNomenclatureTag("[K: F minor]", {pos: 0}));
+        assert.ok(!isNomenclatureTag("[abcde]", {pos: 0}));
       });
     })
     describe('using dispatcher function', function(){
@@ -156,12 +245,18 @@ describe('Transpose and rest', function() {
         const symbol = "abc!fermata!abc";
         assert.equal(dispatcher(symbol as abcText, {pos:0}, (note: string)=>note, "" as annotationStyle), symbol);
       });
+      it('differenciates chord from nomenclature brackets', function(){
+        assert.equal(dispatcher("[K: F minor]", {pos: 0}, (n)=>""),"[K: F minor]" );
+        assert.equal(dispatcher("[abcde]", {pos: 0}, (n)=>""), "[]");
+        assert.equal(dispatcher("[abcde][K: F minor]", {pos: 0}, (n)=>""), "[][K: F minor]");
+      });
     })
   });
 /*   describe('consolidate rests', function() {
     it('consolidates contiguous single-digit rests', function(){
       assert.equal(consolidateRests("zz"), "z2");
     });
-  }); */
+    */
+  }); 
 });
 

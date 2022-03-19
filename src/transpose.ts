@@ -1,6 +1,7 @@
 //const vscode = require('vscode');
 
 import { abcText, annotationCommandEnum, annotationStyle, parseAnnotation } from "./annotationsActions";
+import { findKeySignature } from "./cycleOfFifths";
 
 export const isLetter = (char: string) => !!char.match(/[a-g]/i);
 export const isNoteToken = (char: string) => /[a-g,']/i.test(char);
@@ -10,9 +11,10 @@ export const isPitchToken = (char: string) => /[a-g,'\^=_]/i.test(char);
 const NOTES_LOWERCASE = ["a", "b", "c", "d", "e", "f", "g", "a"];
 const NOTES_UPPERCASE = ["A", "B", "C", "D", "E", "F", "G", "A"];
 
-const isLowerCase = (str: string) => {
+export const isLowerCase = (str: string) => {
   return str == str.toLowerCase() && str != str.toUpperCase();
 }
+
 export const octaviateDownTransform = (note: string) => {
   if (/[,']/.test(note)) {
     if (note[note.length - 1] === "\'") note = note.substring(0, note.length - 1);
@@ -33,6 +35,52 @@ export const convertToRestTransform = (note: string) => {
   note = note.replace(/[\^_,'=]/g, "");
   note = note.replace(/[a-gA-G]/g, "z");
   return note;
+}
+
+
+const noteHeight = [ 
+  [ "c", "^b", "__d", ],
+  [ "^c", "_d", "^^b", ],
+  [ "d", "^^c", "__e", ],
+  [ "^d", "_e", "__f",  ],
+  [ "e", "_f", "^^d",  ],
+  [ "f", "^e", "__g", ],
+  [ "^f", "_g", "^^e", ],
+  [ "g", "^^f", "__a", ],
+  [ "^g", "_a", ],
+  [ "a", "^^g", "__b", ],
+  [ "^a", "_b", "__c", ],
+  [ "b", "_c", "^^a",  ]
+ ];
+
+export type KeyType =`[K:${string}]`;
+
+export const convertToEnharmonia = (note: string, Key?: KeyType) => {
+  const pitch: string = note.replace(/[=,']/g, "").toLowerCase();
+
+  const matchingEnharmoniaList = noteHeight.find(noteSpellings=>noteSpellings.includes(pitch));
+  const enharmoniaList = matchingEnharmoniaList && matchingEnharmoniaList.length? [ ...matchingEnharmoniaList ] : [];
+
+  enharmoniaList.splice(enharmoniaList.indexOf(pitch), 1);
+  let enharmoniaNote;
+
+  if (Key){ 
+    const enharm = findKeySignature(Key).filter(alteration=>enharmoniaList.includes(alteration))
+    enharmoniaNote = enharm.length? enharm[0] : enharmoniaList[0];
+  } else { 
+    enharmoniaNote = enharmoniaList[0]+note.split(/[\^_=]?[a-zA-Z]/g).filter(n=>n) 
+  }
+  const noteName = note.match(/[a-zA-Z]/g);
+  const enharmoniaName = enharmoniaNote.match(/[a-zA-Z]/g);
+
+  if (noteName && !isLowerCase(noteName[0]))enharmoniaNote = enharmoniaNote.toUpperCase();
+
+  if(noteName && enharmoniaName && noteName[0].toLowerCase()==="b" && enharmoniaName[0]==="c"){
+    enharmoniaNote = octaviateUpTransform(enharmoniaNote);
+  }else if (noteName && enharmoniaName && noteName[0].toLowerCase()==="c" && enharmoniaName[0]==="b"){
+    enharmoniaNote = octaviateDownTransform(enharmoniaNote);
+  }
+  return enharmoniaNote;
 }
 
 /*
@@ -138,10 +186,22 @@ export const consolidateRests = (text: abcText) => {
 
 export type dispatcherFunction = (text: abcText, context: contextObj, transformFunction: TransformFunction, tag?: annotationStyle) => string;
 
-export const isNomenclatureLine = (text: abcText, context: contextObj)=>{
-  return /(([a-zA-Z]:)|%)/i.test(text.substring(context.pos));
+export const isNomenclatureTag = (text: abcText, context: contextObj)=>{
+  const subTag = text.substring(context.pos , text.indexOf("]", context.pos) );
+  return /K:.*/i.test(subTag);
+
 };
-export const jumpToEndOfNomenclature = (text: abcText, context: contextObj, transformFunction: TransformFunction, tag?: annotationStyle) =>{
+export const isNomenclatureLine = (text: abcText, context: contextObj)=>{
+  return /(^([a-zA-Z]:)|%)/i.test(text.substring(context.pos));
+};
+export const jumpToEndOfNomenclatureTag = (text: abcText, context: contextObj, transformFunction: TransformFunction, tag?: annotationStyle) =>{
+  const indexOfTagEnd = text.indexOf("]", context.pos+1);
+  const nomenclatureTag = text.substring(context.pos, indexOfTagEnd+1);
+  context.pos = indexOfTagEnd+1;
+  return nomenclatureTag + dispatcher(text, context, transformFunction, tag);
+}
+
+export const jumpToEndOfNomenclatureLine = (text: abcText, context: contextObj, transformFunction: TransformFunction, tag?: annotationStyle) =>{
   const nextLineBreak = text.indexOf("\n", context.pos+1);
   const nomenclature = text.substring(context.pos, nextLineBreak<0?text.length : nextLineBreak) ;
   context.pos = nextLineBreak<0?text.length : nextLineBreak;
@@ -165,10 +225,13 @@ export const dispatcher: dispatcherFunction = (text, context, transformFunction,
     return jumpToEndOfSymbol(text, context, transformFunction, tag);
   }else if (contextChar === "\n" && isNomenclatureLine(text, { pos: context.pos+1 })){
     //skip to next line
-    return jumpToEndOfNomenclature(text, context, transformFunction, tag);
+    return jumpToEndOfNomenclatureLine(text, context, transformFunction, tag);
   }else if (context.pos===0 && isNomenclatureLine(text, { pos: context.pos})){
     //skip to next line
-    return jumpToEndOfNomenclature(text, context, transformFunction, tag);
+    return jumpToEndOfNomenclatureLine(text, context, transformFunction, tag);
+  }else if (contextChar === "[" && isNomenclatureTag(text, { pos: context.pos })){
+    //skip to next end of nomenclature tag
+    return jumpToEndOfNomenclatureTag(text, context, transformFunction, tag);
   } else if (context.pos < text.length) {
     context.pos += 1;
     return contextChar + dispatcher(text, context, transformFunction, tag);
