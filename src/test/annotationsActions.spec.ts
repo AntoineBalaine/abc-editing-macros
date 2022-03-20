@@ -82,13 +82,5 @@ describe('Arrange', function() {
   });
 });
 
-/* describe('Harmonise', function() {
-  describe('parse chord symbols in annotations', function() {
-    it('extract triad chords symbols from annotations', function() { });
-    it('extract 7th/9th chords from annotations', function() { });
-    it('extract chorssOverBassNote from annotations', function() { });
-    it('builds chord harmonisation from extracted chord symbols', function() { });
-    it('builds chord harmonisation under indicated top notes', function() { });
-  });
-  */
+*/
 }); 
