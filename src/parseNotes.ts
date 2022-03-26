@@ -34,12 +34,6 @@ export const parseNote = (
       if (!foundLetter && isLetter(text.charAt(context.pos)))
         foundLetter = true;
       retString += text.charAt(context.pos);
-    } else if (foundLetter && parseRhythmToken(text, context) !== "") {
-      const parsedRhythm = parseRhythmToken(text, context);
-      if (parsedRhythm) {
-        retString += parsedRhythm;
-        context.pos = context.pos + parsedRhythm?.length;
-      }
     } else break;
   }
   return (
