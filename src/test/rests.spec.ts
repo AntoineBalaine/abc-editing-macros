@@ -4,7 +4,7 @@ import {
   consolidateConsecutiveRestsTransform,
   divideLengthTransform,
   duplicateLengthTransform,
-} from "../rests";
+} from "../transformRests";
 
 describe("Rests", function () {
   it("consolidates consecutive rests", function () {

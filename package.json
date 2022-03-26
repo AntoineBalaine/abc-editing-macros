@@ -6,6 +6,7 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "test": "mocha -r ts-node/register src/**/*.spec.ts",
+    "test2": "mocha -r ts-node/register src/test/rests.spec.ts",
     "testJS": "tsc && mocha dist/src/**/*.spec.js",
     "start-dev": "ts-node index.ts",
     "start": "node dist/index.js",

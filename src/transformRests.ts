@@ -1,5 +1,5 @@
 import { abcText } from "./annotationsActions";
-import { dispatcher } from "./transpose";
+import { dispatcher } from "./dispatcher";
 
 const isDivided = (rest: string) => /\//i.test(rest);
 const isMultiplied = (rest: string) => /[a-gA-G][,']*?[0-9]/i.test(rest);
