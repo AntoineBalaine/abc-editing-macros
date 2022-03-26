@@ -1,24 +1,25 @@
 import assert from "assert";
 import { abcText } from "../annotationsActions";
+import { dispatcher } from "../dispatcher";
 import {
-  consolidateConsecutiveRestsTransform,
+  consolidateConsecutiveNotesTransform,
   divideLengthTransform,
   duplicateLengthTransform,
 } from "../transformRests";
 
-describe("Rests", function () {
-  it("consolidates consecutive rests", function () {
+describe("Rhythms", function () {
+  it("consolidates consecutive notes", function () {
     assert.equal(
-      consolidateConsecutiveRestsTransform("[a4a2a2a2a4]" as abcText),
-      "14"
+      consolidateConsecutiveNotesTransform("a4a2a2a2a4" as abcText),
+      "a14"
     );
     assert.equal(
-      consolidateConsecutiveRestsTransform("[a/4a/2a/2a/2a/4]" as abcText),
-      "14"
+      consolidateConsecutiveNotesTransform("a/4a/2a/2a/2a/4" as abcText),
+      "a2"
     );
     assert.equal(
-      consolidateConsecutiveRestsTransform("[aaaaa]" as abcText),
-      "14"
+      consolidateConsecutiveNotesTransform("aaaaa" as abcText),
+      "a5"
     );
   });
   describe("using transform function", function () {
@@ -37,6 +38,19 @@ describe("Rests", function () {
       assert.equal(divideLengthTransform("a//"), "a/4");
       assert.equal(divideLengthTransform("a"), "a/");
       assert.equal(divideLengthTransform("^a''"), "^a''/");
+    });
+  });
+
+  describe("using dispatcher", function () {
+    //todo, account for broken rhythms
+    it("duplicates note's length", function () {
+      assert.equal(
+        dispatcher("a/2", { pos: 0 }, duplicateLengthTransform),
+        "a"
+      );
+    });
+    it("divides note's length", function () {
+      assert.equal(dispatcher("a", { pos: 0 }, divideLengthTransform), "a/");
     });
   });
 });

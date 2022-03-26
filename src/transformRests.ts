@@ -1,5 +1,6 @@
 import { abcText } from "./annotationsActions";
 import { dispatcher } from "./dispatcher";
+import { noteHeight } from "./transformPitches";
 
 const isDivided = (rest: string) => /\//i.test(rest);
 const isMultiplied = (rest: string) => /[a-gA-G][,']*?[0-9]/i.test(rest);
@@ -28,98 +29,42 @@ const groupNotesByLength = (res: any[], curr: abcText) => {
   }
 };
 
-export const consolidateConsecutiveRestsTransform = (
+export const consolidateConsecutiveNotesTransform = (
   text: abcText
 ): abcText => {
-  const pitch = dispatcher(text, { pos: 0 }, (note: abcText) => note)[0];
-  const restsJson = dispatcher(
+  const notesJson = dispatcher(
     text,
     { pos: 0 },
-    (note: abcText) => `","${note}`
+    (note: abcText) => `"${note}",`
   );
 
-  const restsArr = JSON.parse(
-    `[${restsJson.substring(3, restsJson.length - 1)}"]`
+  const notesArr = JSON.parse(
+    `[${notesJson.substring(0, notesJson.length - 1)}]`
   );
-  type restValuesType = {
-    "1unmarked": number;
-    "2divided": string[];
-    "3multiplied": number;
-  };
 
-  const restValues: restValuesType = {
-    "1unmarked": 0,
-    "2divided": [],
-    "3multiplied": 0,
-  };
-  restsArr.forEach((rest: abcText) => {
-    let divisionNumber;
-    if (isDivided(rest)) {
-      if (!/[0-9]/g.test(rest)) {
-        rest =
-          rest.substring(0, rest.indexOf("/")) +
-          (rest.match(/\//g)?.length || 0) * 2;
-      }
-      restValues["2divided"].push(rest);
-    } else if (isMultiplied(rest)) {
-      restValues["3multiplied"] += parseInt(
-        rest?.match(/[0-9]/g)?.filter((n) => n)[0] || "0"
-      );
-    } else {
-      restValues["1unmarked"] += 1;
-      //how to keep track of the pitch itself?
-      /*
+  const pitch = notesArr[0].replace(/[\/0-9]/g, "");
+  const noteLengths: sortedLengthsObj = sortLengths(notesArr, pitch);
 
-      */
-    }
-  });
-  restValues["2divided"]
-    .sort(
-      (a, b) =>
-        parseInt(a.match(/[0-9]*/g)?.filter((n) => n)[0] || "0") -
-        parseInt(b.match(/[0-9]*/g)?.filter((n) => n)[0] || "0")
-    )
-    .join("")
-    .match(/(.)\1*/g);
+  let unsortedConsolidatedValues = buildConsolidatedValues(noteLengths, pitch);
 
-  if (restValues["2divided"].length > 0) {
-    const newVal = restValues["2divided"]
-      ?.reduce(groupNotesByLength, [])
-      .flatMap(consolidateNotesByPairs);
-    restValues["2divided"] = newVal;
-  }
+  const sortedConsolidatedValues = sortLengths(
+    unsortedConsolidatedValues,
+    pitch
+  );
+  /*
+if more values need to be collapsed, call the recursion
+if unmarked and multiplied need collapsing, and
+*/
 
-  let consolidatedValues = [
-    restValues["1unmarked"] === 0 ? "" : restValues["1unmarked"],
-    restValues["3multiplied"] === 0 ? "" : restValues["3multiplied"],
-    restValues["2divided"].length > 0 ? restValues["2divided"].slice() : "",
-  ]
-    .flat()
-    .join("");
-
-  if (restValues["2divided"].some((subArr) => subArr.length > 1)) {
-    return consolidateConsecutiveRestsTransform(`[${consolidatedValues}]`);
+  if (
+    sortedConsolidatedValues["2divided"].some((subArr) => subArr.length > 1)
+  ) {
+    return consolidateConsecutiveNotesTransform(
+      buildConsolidatedValues(sortedConsolidatedValues, pitch).join("")
+    );
   } else {
-    return `${consolidatedValues}`;
+    return buildConsolidatedValues(sortedConsolidatedValues, pitch).join("");
   }
-};
-
-export const consolidateRests = (text: abcText) => {
-  const consecutiveRestsList = text.split("|");
-
-  consecutiveRestsList.map((restsInBar) => {
-    //split ${chord} into a json array
-    const strNotes = dispatcher(
-      text,
-      { pos: 0 },
-      (note: abcText) => `"${note}",`
-    );
-
-    //here, need to remove the trailing comma in array for the JSON to parse correctly
-    const chordNotes = JSON.parse(
-      `${strNotes.substring(0, strNotes.length - 2)}]`
-    );
-  });
 };
 
 const isFloat = (number: number) => number % 1 !== 0;
@@ -180,3 +125,75 @@ export const divideLengthTransform = (note: abcText) => {
     return multiplier === 1 ? `${pitch}` : `${pitch}${multiplier}`;
   } else return `${note}/`;
 };
+
+export type sortedLengthsObj = {
+  "1unmarked": number;
+  "2divided": string[];
+  "3multiplied": number;
+};
+
+const sortLengths = (notesArr: abcText[], pitch: abcText): sortedLengthsObj => {
+  let noteValues: sortedLengthsObj = {
+    "1unmarked": 0,
+    "2divided": [],
+    "3multiplied": 0,
+  };
+  notesArr.forEach((note: abcText) => {
+    let divisionNumber;
+    if (isDivided(note)) {
+      if (!/[0-9]/g.test(note)) {
+        note =
+          note.substring(0, note.indexOf("/")) +
+          (note.match(/\//g)?.length || 0) * 2;
+      }
+      noteValues["2divided"].push(note);
+    } else if (isMultiplied(note)) {
+      noteValues["3multiplied"] += parseInt(
+        note?.match(/[0-9]+/g)?.filter((n) => n)[0] || "0"
+      );
+    } else {
+      noteValues["1unmarked"] += 1;
+    }
+  });
+
+  noteValues["2divided"]
+    .sort(
+      (a, b) =>
+        parseInt(a.match(/[0-9]*/g)?.filter((n) => n)[0] || "0") -
+        parseInt(b.match(/[0-9]*/g)?.filter((n) => n)[0] || "0")
+    )
+    .join("")
+    .match(/(.)\1*/g);
+
+  if (noteValues["2divided"].length > 0) {
+    const newVal = noteValues["2divided"]
+      ?.reduce(groupNotesByLength, [])
+      .flatMap(consolidateNotesByPairs);
+    noteValues["2divided"] = newVal;
+    //check if there are some non-divided values in object and redistribute them
+    if (noteValues["2divided"].some((note) => !isDivided(note))) {
+      noteValues = sortLengths(
+        buildConsolidatedValues(noteValues, pitch),
+        pitch
+      );
+    }
+  }
+
+  return noteValues;
+};
+function buildConsolidatedValues(
+  restValues: sortedLengthsObj,
+  pitch: abcText
+): abcText[] {
+  return [
+    restValues["1unmarked"] === 0
+      ? ""
+      : restValues["1unmarked"] === 1
+      ? pitch
+      : pitch + restValues["1unmarked"],
+    restValues["2divided"].length > 0 ? restValues["2divided"].slice() : "",
+    restValues["3multiplied"] === 0 ? "" : pitch + restValues["3multiplied"],
+  ]
+    .filter((n) => n)
+    .flat();
+}
