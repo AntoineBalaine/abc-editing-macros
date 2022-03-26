@@ -1,5 +1,11 @@
 import { abcText, annotationStyle } from "./annotationsActions";
-import { isLetter, isOctaveToken, dispatcher } from "./dispatcher";
+import {
+  isLetter,
+  isOctaveToken,
+  dispatcher,
+  dispatcherFunction,
+  isRhythmToken,
+} from "./dispatcher";
 import { contextObj, TransformFunction } from "./transformPitches";
 
 export const parseRhythmToken = (text: abcText, context: contextObj) => {
@@ -29,7 +35,8 @@ export const parseNote = (
     context.pos += 1;
     if (
       (!foundLetter && isLetter(text.charAt(context.pos))) ||
-      (foundLetter && isOctaveToken(text.charAt(context.pos)))
+      (foundLetter && isOctaveToken(text.charAt(context.pos))) ||
+      (foundLetter && isRhythmToken(text.charAt(context.pos)))
     ) {
       if (!foundLetter && isLetter(text.charAt(context.pos)))
         foundLetter = true;

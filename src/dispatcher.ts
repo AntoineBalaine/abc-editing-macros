@@ -21,8 +21,7 @@ export const isNoteToken = (char: string) => /[a-g,']/i.test(char);
 export const isOctaveToken = (char: string) => /[,']/i.test(char);
 export const isAlterationToken = (char: string) => !!char.match(/[\^=_]/i);
 export const isPitchToken = (char: string) => /[a-g,'\^=_]/i.test(char);
-export const isRhythmToken = (text: abcText): boolean =>
-  /([0-9]?\/[0-9]+)|([0-9]+)|(\/+)/g.test(text);
+export const isRhythmToken = (text: abcText): boolean => /[0-9]|\//g.test(text);
 export const NOTES_LOWERCASE = ["a", "b", "c", "d", "e", "f", "g", "a"];
 export const NOTES_UPPERCASE = ["A", "B", "C", "D", "E", "F", "G", "A"];
 
