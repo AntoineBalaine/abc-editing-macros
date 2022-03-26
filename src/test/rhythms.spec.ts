@@ -1,6 +1,7 @@
 import assert from "assert";
 import { abcText } from "../annotationsActions";
 import { dispatcher } from "../dispatcher";
+import { parseNote } from "../parseNotes";
 import {
   consolidateConsecutiveNotesTransform,
   divideLengthTransform,
@@ -8,21 +9,57 @@ import {
 } from "../transformRests";
 
 describe("Rhythms", function () {
-  it("consolidates consecutive notes", function () {
-    assert.equal(
-      consolidateConsecutiveNotesTransform("a4a2a2a2a4" as abcText),
-      "a14"
-    );
-    assert.equal(
-      consolidateConsecutiveNotesTransform("a/4a/2a/2a/2a/4" as abcText),
-      "a2"
-    );
-    assert.equal(
-      consolidateConsecutiveNotesTransform("aaaaa" as abcText),
-      "a5"
-    );
+  describe("Parse Notes with Rhythms", function () {
+    it("returns notes with rhythms", function () {
+      assert.equal(
+        parseNote("^A,,", { pos: 0 }, (n) => n),
+        "^A,,"
+      );
+      assert.equal(
+        parseNote("^A,,2", { pos: 0 }, (n) => n),
+        "^A,,2"
+      );
+      assert.equal(
+        parseNote("^A,,2/12", { pos: 0 }, (n) => n),
+        "^A,,2/12"
+      );
+      assert.equal(
+        parseNote("^A,,2/12", { pos: 0 }, (n) => n),
+        "^A,,2/12"
+      );
+    });
   });
-  describe("using transform function", function () {
+  describe("consolidate", function () {
+    it("consolidates consecutive notes", function () {
+      assert.equal(
+        consolidateConsecutiveNotesTransform("a4a2a2a2a4" as abcText),
+        "a14"
+      );
+      assert.equal(
+        consolidateConsecutiveNotesTransform("a/4a/2a/2a/2a/4" as abcText),
+        "a2"
+      );
+      assert.equal(
+        consolidateConsecutiveNotesTransform("aaaaa" as abcText),
+        "a5"
+      );
+    });
+    it("consolidates consecutive rests", function () {
+      assert.equal(
+        consolidateConsecutiveNotesTransform("z4z2z2z2z4" as abcText),
+        "z14"
+      );
+      assert.equal(
+        consolidateConsecutiveNotesTransform("z/4z/2z/2z/2z/4" as abcText),
+        "z2"
+      );
+      assert.equal(
+        consolidateConsecutiveNotesTransform("zzzzz" as abcText),
+        "z5"
+      );
+    });
+  });
+  describe("transform function", function () {
     //todo, account for broken rhythms
     it("duplicates note's length", function () {
       assert.equal(duplicateLengthTransform("a"), "a2");

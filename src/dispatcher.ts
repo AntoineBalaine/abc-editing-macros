@@ -16,7 +16,7 @@ import {
 } from "./parseNomenclature";
 import { parseNote } from "./parseNotes";
 
-export const isLetter = (char: string) => !!char.match(/[a-g]/i);
+export const isLetter = (char: string) => !!char.match(/[a-gz]/i);
 export const isNoteToken = (char: string) => /[a-g,']/i.test(char);
 export const isOctaveToken = (char: string) => /[,']/i.test(char);
 export const isAlterationToken = (char: string) => !!char.match(/[\^=_]/i);

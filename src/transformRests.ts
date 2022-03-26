@@ -1,9 +1,8 @@
 import { abcText } from "./annotationsActions";
 import { dispatcher } from "./dispatcher";
-import { noteHeight } from "./transformPitches";
 
 const isDivided = (rest: string) => /\//i.test(rest);
-const isMultiplied = (rest: string) => /[a-gA-G][,']*?[0-9]/i.test(rest);
+const isMultiplied = (rest: string) => /[a-gA-Gz][,']*?[0-9]/i.test(rest);
 
 const consolidateNotesByPairs = (noteLengthArr: string | string[]): any[] => {
   const duplicatedLength = duplicateLengthTransform(noteLengthArr[0]);

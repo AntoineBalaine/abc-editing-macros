@@ -10,6 +10,7 @@ export const isLowerCase = (str: string) => {
 };
 
 export const octaviateDownTransform = (note: string) => {
+  if (note.replace(/[\^_=,'0-9]/g, "").toLowerCase() === "z") return note;
   if (/[,']/.test(note)) {
     if (note[note.length - 1] === "'")
       note = note.substring(0, note.length - 1);
@@ -19,6 +20,7 @@ export const octaviateDownTransform = (note: string) => {
   return note;
 };
 export const octaviateUpTransform = (note: string) => {
+  if (note.replace(/[\^_=,'0-9]/g, "").toLowerCase() === "z") return note;
   if (/[,']/.test(note)) {
     if (note[note.length - 1] === "'") note += "'";
     if (note[note.length - 1] === ",")
@@ -102,6 +104,7 @@ export const convertToEnharmoniaTransform = (note: string, Key?: KeyType) => {
 */
 
 export const transposeHalfStepDownTransform = (note: string) => {
+  if (note.replace(/[\^_=,'0-9]/g, "").toLowerCase() === "z") return note;
   if (note[0] === "=") {
     note = note.slice(1);
   }
@@ -146,6 +149,7 @@ export const transposeHalfStepDownTransform = (note: string) => {
   return note;
 };
 export const transposeHalfStepUpTransform = (note: string) => {
+  if (note.replace(/[\^_=,'0-9]/g, "").toLowerCase() === "z") return note;
   if (note[0] === "=") {
     note = note.slice(1);
   }
