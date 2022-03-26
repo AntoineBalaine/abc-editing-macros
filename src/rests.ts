@@ -4,70 +4,104 @@ import { dispatcher } from "./transpose";
 const isDivided = (rest: string) => /\//i.test(rest);
 const isMultiplied = (rest: string) => /[a-gA-G][,']*?[0-9]/i.test(rest);
 
-/*
-    This transform function assumes that only consecutive rests will be passed-in
-*/
-export const consolidateConsecutiveRestsTransform = (text: abcText) => {
-  //split text at bar lines
+const consolidateNotesByPairs = (noteLengthArr: string | string[]): any[] => {
+  const duplicatedLength = duplicateLengthTransform(noteLengthArr[0]);
 
-  //split ${chord} into a json array
+  const duplicationAmount = Math.trunc(noteLengthArr.length / 2);
+  const resulting = new Array(duplicationAmount).fill(duplicatedLength);
+  return [...resulting, ...noteLengthArr.slice(0, noteLengthArr.length % 2)];
+};
+
+const groupNotesByLength = (res: any[], curr: abcText) => {
+  const parsedRes: string[] = res;
+  if (parsedRes.some((subArr: abcText) => subArr.includes(curr))) {
+    const mappedRes = parsedRes.map((item: string) => {
+      if (item.includes(curr)) {
+        return [...item, curr];
+      } else {
+        return item;
+      }
+    });
+    return mappedRes;
+  } else {
+    return [...parsedRes, [curr]];
+  }
+};
+
+export const consolidateConsecutiveRestsTransform = (
+  text: abcText
+): abcText => {
+  const pitch = dispatcher(text, { pos: 0 }, (note: abcText) => note)[0];
   const restsJson = dispatcher(
     text,
     { pos: 0 },
-    (note: abcText) => `"${note}",`
+    (note: abcText) => `","${note}`
   );
 
-  //here, need to remove the trailing comma in array for the JSON to parse correctly
   const restsArr = JSON.parse(
-    `${restsJson.substring(0, restsJson.length - 2)}]`
+    `[${restsJson.substring(3, restsJson.length - 1)}"]`
   );
-  /*
-    //separate each note passed-in. 
-    // group them by subdivision
-    //for each note, find if it's followed by 
-        slash and number 
-        or number only
-    */
   type restValuesType = {
-    "1unmarked": number[];
-    "2divided": number[];
-    "3multiplied": number[][];
+    "1unmarked": number;
+    "2divided": string[];
+    "3multiplied": number;
   };
 
   const restValues: restValuesType = {
-    "1unmarked": [],
+    "1unmarked": 0,
     "2divided": [],
-    "3multiplied": [],
+    "3multiplied": 0,
   };
   restsArr.forEach((rest: abcText) => {
     let divisionNumber;
     if (isDivided(rest)) {
-      //if doesn't contain number, count number of slashes
       if (!/[0-9]/g.test(rest)) {
-        divisionNumber = rest?.match(/\//g)?.reduce((prev) => prev * 2, 1) || 0;
-        restValues["2divided"].push(divisionNumber);
-      } else {
-        //if contains number
-        divisionNumber = parseInt(
-          rest?.match(/[0-9]*/g)?.filter((n) => n)[0] || "0"
-        );
-        restValues["2divided"].push(divisionNumber);
+        rest =
+          rest.substring(0, rest.indexOf("/")) +
+          (rest.match(/\//g)?.length || 0) * 2;
       }
+      restValues["2divided"].push(rest);
     } else if (isMultiplied(rest)) {
-      divisionNumber = parseInt(
-        rest?.match(/[0-9]*/g)?.filter((n) => n)[0] || "0"
+      restValues["3multiplied"] += parseInt(
+        rest?.match(/[0-9]/g)?.filter((n) => n)[0] || "0"
       );
-      restValues["2divided"].push(divisionNumber);
     } else {
-      restValues["1unmarked"].push(1);
+      restValues["1unmarked"] += 1;
+      //how to keep track of the pitch itself?
+      /*
+
+      */
     }
   });
   restValues["2divided"]
-    .sort((a, b) => a - b)
+    .sort(
+      (a, b) =>
+        parseInt(a.match(/[0-9]*/g)?.filter((n) => n)[0] || "0") -
+        parseInt(b.match(/[0-9]*/g)?.filter((n) => n)[0] || "0")
+    )
     .join("")
     .match(/(.)\1*/g);
-  // compte le nombre d'entiers (longueur 1) pour chaque subdivision
-  // le dénominateur de la fraction (parseInt(subdivisionActuelle[0])) indique la taille du fragment nécessaire pour constituer un entier
+
+  if (restValues["2divided"].length > 0) {
+    const newVal = restValues["2divided"]
+      ?.reduce(groupNotesByLength, [])
+      .flatMap(consolidateNotesByPairs);
+    restValues["2divided"] = newVal;
+  }
+
+  let consolidatedValues = [
+    restValues["1unmarked"] === 0 ? "" : restValues["1unmarked"],
+    restValues["3multiplied"] === 0 ? "" : restValues["3multiplied"],
+    restValues["2divided"].length > 0 ? restValues["2divided"].slice() : "",
+  ]
+    .flat()
+    .join("");
+
+  if (restValues["2divided"].some((subArr) => subArr.length > 1)) {
+    return consolidateConsecutiveRestsTransform(`[${consolidatedValues}]`);
+  } else {
+    return `${consolidatedValues}`;
+  }
 };
 
 export const consolidateRests = (text: abcText) => {
