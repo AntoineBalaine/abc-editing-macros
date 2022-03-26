@@ -219,23 +219,6 @@ describe("Transpose and rest", function () {
       //assert.equal(transposeStepDown(fullTextLine), fullTextLineDownAStep);
     });
     /*   
-    it('converts enharmonias', function() {
-      find the key from the header, find the key from the text.      
-
-
-      //assert.equal(dispatcher("^c"as abcText, {pos: 0}, convertToEnharmonia), "_d");
-
-       assert.equal(convertToEnharmonia("^c"), "_d");
-      assert.equal(convertToEnharmonia("^d"), "_e");
-      assert.equal(convertToEnharmonia("^e"), "f");
-      assert.equal(convertToEnharmonia("^f"), "_g");
-      assert.equal(convertToEnharmonia("^g"), "_a");
-      assert.equal(convertToEnharmonia("^a"), "_b");
-      assert.equal(convertToEnharmonia("^b"), "c'");
-      assert.equal(convertToEnharmonia("_c"), "B");
-      assert.equal(convertToEnharmonia("_f"), "e");
-    });
-  });
 describe('using file structure', function() {
     it('provides courtesy accidentals for the current measure', function(){
       assert.ok(false);
@@ -254,145 +237,137 @@ describe('using file structure', function() {
     });
   }); 
   */
-
-    describe("Nomenclature", function () {
-      let nomenclature = "% this is a line comment";
-      let nomenclature2 = "w: lyrics to a song";
-      let nomenclature3 = "K: key change";
-      let notNomenclature = "blalbalbala";
-      describe("using detector function", function () {
-        it("recognizes line comments", function () {
-          assert.ok(isNomenclatureLine(nomenclature as abcText, { pos: 0 }));
-          assert.ok(isNomenclatureLine(nomenclature2 as abcText, { pos: 0 }));
-          assert.ok(isNomenclatureLine(nomenclature3 as abcText, { pos: 0 }));
-          assert.ok(
-            !isNomenclatureLine(notNomenclature as abcText, { pos: 0 })
-          );
-        });
-        it("leave symbols untouched", function () {
-          const symbol = "!fermata!";
-          assert.equal(
-            jumpToEndOfSymbol(
-              symbol as abcText,
-              { pos: 0 },
-              () => "",
-              "" as annotationStyle
-            ),
-            symbol
-          );
-        });
-        it("differenciates chord from nomenclature brackets", function () {
-          assert.ok(isNomenclatureTag("[K: F minor]", { pos: 0 }));
-          assert.ok(!isNomenclatureTag("[abcde]", { pos: 0 }));
-        });
-      });
-      describe("using dispatcher function", function () {
-        it("recognizes line comments", function () {
-          assert.equal(
-            dispatcher(
-              nomenclature as abcText,
-              { pos: 0 },
-              () => "",
-              "" as annotationStyle
-            ),
-            nomenclature
-          );
-          assert.equal(
-            dispatcher(
-              nomenclature2 as abcText,
-              { pos: 0 },
-              () => "",
-              "" as annotationStyle
-            ),
-            nomenclature2
-          );
-          assert.equal(
-            dispatcher(
-              nomenclature3 as abcText,
-              { pos: 0 },
-              () => "",
-              "" as annotationStyle
-            ),
-            nomenclature3
-          );
-          assert.notEqual(
-            dispatcher(
-              notNomenclature as abcText,
-              { pos: 0 },
-              () => "",
-              "" as annotationStyle
-            ),
-            notNomenclature
-          );
-        });
-        it("parses overlapping tags, preserves line comments", function () {
-          let annotation =
-            'Ab"wd"cD,E, |\n% this is a linecomment \n"str soli"A,B,CD |\n EFG"/str /wd "D^FAc';
-          expect(findInstrumentCalls(annotation, { pos: 0 })).to.eql([
-            {
-              wd: 'zzcD,E, |\n% this is a linecomment \n"soli"A,B,CD |\n EFGzzzz',
-            },
-            {
-              str: 'zzzzz |\n% this is a linecomment \n"soli"A,B,CD |\n EFGzzzz',
-            },
-          ]);
-        });
-        it("parses overlapping tags, preserves lyrics' lines", function () {
-          let annotation =
-            'Ab"wd"cD,E, |\nw: these are some lyrics\n"str soli"A,B,CD |\n EFG"/str /wd "D^FAc';
-          expect(findInstrumentCalls(annotation, { pos: 0 })).to.eql([
-            {
-              wd: 'zzcD,E, |\nw: these are some lyrics\n"soli"A,B,CD |\n EFGzzzz',
-            },
-            {
-              str: 'zzzzz |\nw: these are some lyrics\n"soli"A,B,CD |\n EFGzzzz',
-            },
-          ]);
-        });
-        it("parses overlapping tags, preserves keychanges", function () {
-          let annotation =
-            'Ab"wd"cD,E, |\nK: this is a key change\n"str soli"A,B,CD |\n EFG"/str /wd "D^FAc';
-          expect(findInstrumentCalls(annotation, { pos: 0 })).to.eql([
-            {
-              wd: 'zzcD,E, |\nK: this is a key change\n"soli"A,B,CD |\n EFGzzzz',
-            },
-            {
-              str: 'zzzzz |\nK: this is a key change\n"soli"A,B,CD |\n EFGzzzz',
-            },
-          ]);
-        });
-        it("leave symbols untouched", function () {
-          const symbol = "abc!fermata!abc";
-          assert.equal(
-            dispatcher(
-              symbol as abcText,
-              { pos: 0 },
-              (note: string) => note,
-              "" as annotationStyle
-            ),
-            symbol
-          );
-        });
-        it("differenciates chord from nomenclature brackets", function () {
-          assert.equal(
-            dispatcher("[K: F minor]", { pos: 0 }, (n) => ""),
-            "[K: F minor]"
-          );
-          assert.equal(
-            dispatcher("[abcde]", { pos: 0 }, (n) => ""),
-            "[]"
-          );
-          assert.equal(
-            dispatcher("[abcde][K: F minor]", { pos: 0 }, (n) => ""),
-            "[][K: F minor]"
-          );
-        });
-      });
+  });
+});
+describe("Nomenclature", function () {
+  let nomenclature = "% this is a line comment";
+  let nomenclature2 = "w: lyrics to a song";
+  let nomenclature3 = "K: key change";
+  let notNomenclature = "blalbalbala";
+  describe("using detector function", function () {
+    it("recognizes line comments", function () {
+      assert.ok(isNomenclatureLine(nomenclature as abcText, { pos: 0 }));
+      assert.ok(isNomenclatureLine(nomenclature2 as abcText, { pos: 0 }));
+      assert.ok(isNomenclatureLine(nomenclature3 as abcText, { pos: 0 }));
+      assert.ok(!isNomenclatureLine(notNomenclature as abcText, { pos: 0 }));
     });
-    /*   describe('consolidate rests', function() {
-    it('consolidates contiguous single-digit rests', function(){
-      assert.equal(consolidateRests("zz"), "z2");
+    it("leave symbols untouched", function () {
+      const symbol = "!fermata!";
+      assert.equal(
+        jumpToEndOfSymbol(
+          symbol as abcText,
+          { pos: 0 },
+          () => "",
+          "" as annotationStyle
+        ),
+        symbol
+      );
     });
-    */
+    it("differenciates chord from nomenclature brackets", function () {
+      assert.ok(isNomenclatureTag("[K: F minor]", { pos: 0 }));
+      assert.ok(!isNomenclatureTag("[abcde]", { pos: 0 }));
+    });
+  });
+  describe("using dispatcher function", function () {
+    it("recognizes line comments", function () {
+      assert.equal(
+        dispatcher(
+          nomenclature as abcText,
+          { pos: 0 },
+          () => "",
+          "" as annotationStyle
+        ),
+        nomenclature
+      );
+      assert.equal(
+        dispatcher(
+          nomenclature2 as abcText,
+          { pos: 0 },
+          () => "",
+          "" as annotationStyle
+        ),
+        nomenclature2
+      );
+      assert.equal(
+        dispatcher(
+          nomenclature3 as abcText,
+          { pos: 0 },
+          () => "",
+          "" as annotationStyle
+        ),
+        nomenclature3
+      );
+      assert.notEqual(
+        dispatcher(
+          notNomenclature as abcText,
+          { pos: 0 },
+          () => "",
+          "" as annotationStyle
+        ),
+        notNomenclature
+      );
+    });
+    it("parses overlapping tags, preserves line comments", function () {
+      let annotation =
+        'Ab"wd"cD,E, |\n% this is a linecomment \n"str soli"A,B,CD |\n EFG"/str /wd "D^FAc';
+      expect(findInstrumentCalls(annotation, { pos: 0 })).to.eql([
+        {
+          wd: 'zzcD,E, |\n% this is a linecomment \n"soli"A,B,CD |\n EFGzzzz',
+        },
+        {
+          str: 'zzzzz |\n% this is a linecomment \n"soli"A,B,CD |\n EFGzzzz',
+        },
+      ]);
+    });
+    it("parses overlapping tags, preserves lyrics' lines", function () {
+      let annotation =
+        'Ab"wd"cD,E, |\nw: these are some lyrics\n"str soli"A,B,CD |\n EFG"/str /wd "D^FAc';
+      expect(findInstrumentCalls(annotation, { pos: 0 })).to.eql([
+        {
+          wd: 'zzcD,E, |\nw: these are some lyrics\n"soli"A,B,CD |\n EFGzzzz',
+        },
+        {
+          str: 'zzzzz |\nw: these are some lyrics\n"soli"A,B,CD |\n EFGzzzz',
+        },
+      ]);
+    });
+    it("parses overlapping tags, preserves keychanges", function () {
+      let annotation =
+        'Ab"wd"cD,E, |\nK: this is a key change\n"str soli"A,B,CD |\n EFG"/str /wd "D^FAc';
+      expect(findInstrumentCalls(annotation, { pos: 0 })).to.eql([
+        {
+          wd: 'zzcD,E, |\nK: this is a key change\n"soli"A,B,CD |\n EFGzzzz',
+        },
+        {
+          str: 'zzzzz |\nK: this is a key change\n"soli"A,B,CD |\n EFGzzzz',
+        },
+      ]);
+    });
+    it("leave symbols untouched", function () {
+      const symbol = "abc!fermata!abc";
+      assert.equal(
+        dispatcher(
+          symbol as abcText,
+          { pos: 0 },
+          (note: string) => note,
+          "" as annotationStyle
+        ),
+        symbol
+      );
+    });
+    it("differenciates chord from nomenclature brackets", function () {
+      assert.equal(
+        dispatcher("[K: F minor]", { pos: 0 }, (n) => ""),
+        "[K: F minor]"
+      );
+      assert.equal(
+        dispatcher("[abcde]", { pos: 0 }, (n) => ""),
+        "[]"
+      );
+      assert.equal(
+        dispatcher("[abcde][K: F minor]", { pos: 0 }, (n) => ""),
+        "[][K: F minor]"
+      );
+    });
   });
 });

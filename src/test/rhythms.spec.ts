@@ -89,5 +89,15 @@ describe("Rhythms", function () {
     it("divides note's length", function () {
       assert.equal(dispatcher("a", { pos: 0 }, divideLengthTransform), "a/");
     });
+    it("duplicates and divides broken rhythms", function () {
+      assert.equal(
+        dispatcher("a/2>a/2", { pos: 0 }, duplicateLengthTransform),
+        "a>a"
+      );
+      assert.equal(
+        dispatcher("a>a", { pos: 0 }, divideLengthTransform),
+        "a/>a/"
+      );
+    });
   });
 });
