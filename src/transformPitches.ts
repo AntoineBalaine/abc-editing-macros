@@ -1,9 +1,15 @@
-import { findKeySignature } from "./parsekeySignature";
+import {
+  findKeySignature,
+  findNotesInKey,
+  findUnalteredPitch,
+} from "./parsekeySignature";
 import {
   isAlterationToken,
   NOTES_LOWERCASE,
   NOTES_UPPERCASE,
 } from "./dispatcher";
+import { transposeOctUp } from "./test/testTransposeFunctions";
+import { abcText } from "./annotationsActions";
 
 export const isLowerCase = (str: string) => {
   return str == str.toLowerCase() && str != str.toUpperCase();
@@ -50,9 +56,12 @@ export const noteHeight = [
   ["b", "_c", "^^a"],
 ];
 
-export type KeyType = `[K:${string}]`;
+export type KeyIndicationType = `[K:${string}]`;
 
-export const convertToEnharmoniaTransform = (note: string, Key?: KeyType) => {
+export const convertToEnharmoniaTransform = (
+  note: string,
+  Key?: KeyIndicationType
+) => {
   const pitch: string = note.replace(/[=,']/g, "").toLowerCase();
 
   const matchingEnharmoniaList = noteHeight.find((noteSpellings) =>
@@ -63,14 +72,34 @@ export const convertToEnharmoniaTransform = (note: string, Key?: KeyType) => {
       ? [...matchingEnharmoniaList]
       : [];
 
-  enharmoniaList.splice(enharmoniaList.indexOf(pitch), 1);
-  let enharmoniaNote;
+  if (enharmoniaList.includes(pitch)) {
+    const index = enharmoniaList.indexOf(pitch);
+    enharmoniaList.splice(index, 1);
+  }
+  let enharmoniaNote: abcText;
 
   if (Key) {
-    const enharm = findKeySignature(Key).filter((alteration) =>
-      enharmoniaList.includes(alteration)
-    );
-    enharmoniaNote = enharm.length ? enharm[0] : enharmoniaList[0];
+    //if note is in Key, then do not enharmonise it.
+    //else, find closest match in enharmoniaList
+    const notesInKey = findNotesInKey(Key);
+    if (notesInKey.includes(pitch)) {
+      enharmoniaNote = notesInKey[notesInKey.indexOf(pitch)];
+    } else {
+      let correspondingNoteInKey = enharmoniaList.find((enharmNote) =>
+        findNotesInKey(Key).includes(enharmNote)
+      );
+
+      if (
+        correspondingNoteInKey !== undefined &&
+        correspondingNoteInKey !== enharmoniaList[0]
+      ) {
+        enharmoniaNote = correspondingNoteInKey;
+      } else {
+        enharmoniaNote = enharmoniaList[0];
+      }
+    }
+    let octaveToken = note.match(/[,']+/g);
+    if (octaveToken && octaveToken.length) enharmoniaNote += octaveToken[0];
   } else {
     enharmoniaNote =
       enharmoniaList[0] + note.split(/[\^_=]?[a-zA-Z]/g).filter((n) => n);
@@ -192,6 +221,71 @@ export const transposeHalfStepUpTransform = (note: string) => {
   return note;
 };
 
+export const transposeStepUpTransform = (
+  note: string,
+  Key?: KeyIndicationType
+) => {
+  if (note.replace(/[\^_=,'0-9]/g, "").toLowerCase() === "z") return note;
+  /*
+    transpose note half step up two times.
+    if note is b, transpose up an octave
+  */
+  let transposedStepUpNote = note;
+  for (let i = 0; i < 2; i++) {
+    transposedStepUpNote = transposeHalfStepUpTransform(transposedStepUpNote);
+  }
+  if (note.replace(/[\^_=,'0-9]/g, "").toLowerCase() === "b") {
+    transposedStepUpNote = transposeOctUp(transposedStepUpNote);
+  }
+  /*
+  if transposedStepUpNote is not in current key signature,
+    transposedStepUpNote = enharmonise(transposedStepUpNote, currentKeySignature)
+
+  */
+  if (Key) {
+    const enharmonisedTransposedStepUpNote = convertToEnharmoniaTransform(
+      transposedStepUpNote,
+      Key
+    );
+    if (enharmonisedTransposedStepUpNote)
+      transposedStepUpNote = enharmonisedTransposedStepUpNote;
+  }
+  return transposedStepUpNote;
+};
+
+export const transposeStepDownTransform = (
+  note: string,
+  Key?: KeyIndicationType
+) => {
+  if (note.replace(/[\^_=,'0-9]/g, "").toLowerCase() === "z") return note;
+  /*
+    transpose note half step up two times.
+    if note is b, transpose up an octave
+  */
+  let transposedStepDownNote = note;
+  for (let i = 0; i < 2; i++) {
+    transposedStepDownNote = transposeHalfStepDownTransform(
+      transposedStepDownNote
+    );
+  }
+  if (note.replace(/[\^_=,'0-9]/g, "").toLowerCase() === "b") {
+    transposedStepDownNote = transposeOctUp(transposedStepDownNote);
+  }
+  /*
+  if transposedStepUpNote is not in current key signature,
+    transposedStepUpNote = enharmonise(transposedStepUpNote, currentKeySignature)
+
+  */
+  if (Key) {
+    const enharmonisedTransposedStepUpNote = convertToEnharmoniaTransform(
+      transposedStepDownNote,
+      Key
+    );
+    if (enharmonisedTransposedStepUpNote)
+      transposedStepDownNote = enharmonisedTransposedStepUpNote;
+  }
+  return transposedStepDownNote;
+};
 export type contextObj = {
   pos: number;
 };

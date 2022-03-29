@@ -2,10 +2,13 @@ import { dispatcher, isNoteToken } from "../dispatcher";
 import {
   convertToEnharmoniaTransform,
   convertToRestTransform,
+  KeyIndicationType,
   octaviateDownTransform,
   octaviateUpTransform,
   transposeHalfStepDownTransform,
   transposeHalfStepUpTransform,
+  transposeStepDownTransform,
+  transposeStepUpTransform,
 } from "../transformPitches";
 import {
   transposeHalfStepDown,
@@ -81,6 +84,15 @@ describe("Transpose and rest", function () {
       assert.equal(transposeHalfStepDownTransform("^G,"), "G,");
       assert.equal(transposeHalfStepDownTransform("g'"), "_g'");
       assert.equal(transposeHalfStepDownTransform("G,"), "_G,");
+    });
+    it("1 step up", function () {
+      assert.equal(transposeStepUpTransform("C,"), "D,");
+      assert.equal(transposeStepUpTransform("B,"), "^C");
+      assert.equal(transposeStepUpTransform("_B,"), "C");
+      assert.equal(
+        transposeStepUpTransform("_A,", "[K:Bb]" as KeyIndicationType),
+        "_B,"
+      );
     });
     it("converts single notes to rest", function () {
       assert.equal(convertToRestTransform("^g'"), "z");
@@ -206,6 +218,30 @@ describe("Transpose and rest", function () {
       assert.equal(transposeHalfStepUp("^E,,^B,,^G,,^C,"), "^F,,^C,,A,,D,");
       assert.equal(transposeHalfStepUp("C,E,_G,B,,_e"), "^C,F,G,C,,e");
     });
+    it("1 step up", function () {
+      assert.equal(
+        dispatcher("C,E,_G,B,,_e", { pos: 0 }, transposeStepUpTransform),
+        "D,^F,^G,^C,f"
+      );
+      assert.equal(
+        dispatcher("C,E,G,B,,e", { pos: 0 }, (note: string) =>
+          transposeStepUpTransform(note, "[K:A]")
+        ),
+        "D,^F,A,^C,^f"
+      );
+    });
+    it("1 step down", function () {
+      assert.equal(
+        dispatcher("C,E,^F,B,,_e", { pos: 0 }, transposeStepDownTransform),
+        "_B,D,E,A,_d"
+      );
+      assert.equal(
+        dispatcher("^C,E,G,B,,e", { pos: 0 }, (note: string) =>
+          transposeStepDownTransform(note, "[K:A]")
+        ),
+        "B,D,^E,A,d"
+      );
+    });
     it("no notes in string - do not transpose anything", function () {
       assert.equal(transposeHalfStepDown("(z4|z4|)"), "(z4|z4|)");
     });
@@ -215,9 +251,8 @@ describe("Transpose and rest", function () {
         transposeHalfStepDown(fullTextLine),
         fullTextLineDownAHalfStep
       );
-      //assert.equal(transposeStepUp(fullTextLine), fullTextLineUpAStep);
-      //assert.equal(transposeStepDown(fullTextLine), fullTextLineDownAStep);
     });
+
     /*   
 describe('using file structure', function() {
     it('provides courtesy accidentals for the current measure', function(){
