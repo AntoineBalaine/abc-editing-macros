@@ -4,6 +4,7 @@
   "description": "",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "files": ["lib/**/*"],
   "scripts": {
     "test": "mocha -r ts-node/register src/**/*.spec.ts",
     "test2": "mocha -r ts-node/register src/test/rests.spec.ts",
