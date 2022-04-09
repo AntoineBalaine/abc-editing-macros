@@ -4,7 +4,9 @@
   "description": "",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
-  "files": ["lib/**/*"],
+  "files": [
+    "lib/**/*"
+  ],
   "scripts": {
     "test": "mocha -r ts-node/register src/**/*.spec.ts",
     "testJS": "tsc && mocha dist/src/**/*.spec.js",

@@ -1,0 +1,12 @@
+import { abcText, annotationStyle } from "./annotationsActions";
+import { contextObj, TransformFunction } from "./transformPitches";
+export declare const isLetter: (char: string) => boolean;
+export declare const isNoteToken: (char: string) => boolean;
+export declare const isOctaveToken: (char: string) => boolean;
+export declare const isAlterationToken: (char: string) => boolean;
+export declare const isPitchToken: (char: string) => boolean;
+export declare const isRhythmToken: (text: abcText) => boolean;
+export declare const NOTES_LOWERCASE: string[];
+export declare const NOTES_UPPERCASE: string[];
+export declare type dispatcherFunction = (text: abcText, context: contextObj, transformFunction: TransformFunction, tag?: annotationStyle) => string;
+export declare const dispatcher: dispatcherFunction;
