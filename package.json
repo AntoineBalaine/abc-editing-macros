@@ -2,19 +2,18 @@
   "name": "abc_macros_code",
   "version": "1.0.0",
   "description": "",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
   "files": ["lib/**/*"],
   "scripts": {
     "test": "mocha -r ts-node/register src/**/*.spec.ts",
-    "test2": "mocha -r ts-node/register src/test/rests.spec.ts",
     "testJS": "tsc && mocha dist/src/**/*.spec.js",
     "start-dev": "ts-node index.ts",
     "start": "node dist/index.js",
     "build": "tsc"
   },
   "keywords": [],
-  "author": "",
+  "author": "Antoine Balaine",
   "license": "ISC",
   "devDependencies": {
     "@types/chai": "^4.3.0",
