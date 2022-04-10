@@ -5,6 +5,7 @@ import {
 } from "./parsekeySignature";
 import {
   isAlterationToken,
+  isRhythmToken,
   NOTES_LOWERCASE,
   NOTES_UPPERCASE,
 } from "./dispatcher";
@@ -17,23 +18,28 @@ export const isLowerCase = (str: string) => {
 
 export const octaviateDownTransform = (note: string) => {
   if (note.replace(/[\^_=,'0-9]/g, "").toLowerCase() === "z") return note;
+  //sépare les rhythmes des hauteurs
+  const lengthToken: string = note.replace(/[^(\/0-9)]/g, "");
+  note = note.replace(/[(\/0-9)]/g, "");
   if (/[,']/.test(note)) {
     if (note[note.length - 1] === "'")
       note = note.substring(0, note.length - 1);
     if (note[note.length - 1] === ",") note += ",";
   } else if (!isLowerCase(note[note.length - 1])) note += ",";
   else note = note.toUpperCase();
-  return note;
+  return note + lengthToken;
 };
 export const octaviateUpTransform = (note: string) => {
   if (note.replace(/[\^_=,'0-9]/g, "").toLowerCase() === "z") return note;
+  const lengthToken: string = note.replace(/[^(\/0-9)]/g, "");
+  note = note.replace(/[(\/0-9)]/g, "");
   if (/[,']/.test(note)) {
     if (note[note.length - 1] === "'") note += "'";
     if (note[note.length - 1] === ",")
       note = note.substring(0, note.length - 1);
   } else if (isLowerCase(note[note.length - 1])) note += "'";
   else note = note.toLowerCase();
-  return note;
+  return note + lengthToken;
 };
 export const convertToRestTransform = (note: string) => {
   note = note.replace(/[\^_,'=]/g, "");
@@ -226,6 +232,8 @@ export const transposeStepUpTransform = (
   Key?: KeyIndicationType
 ) => {
   if (note.replace(/[\^_=,'0-9]/g, "").toLowerCase() === "z") return note;
+  const lengthToken: string = note.replace(/[^(\/0-9)]/g, "");
+  note = note.replace(/[(\/0-9)]/g, "");
   /*
     transpose note half step up two times.
     if note is b, transpose up an octave
@@ -250,7 +258,7 @@ export const transposeStepUpTransform = (
     if (enharmonisedTransposedStepUpNote)
       transposedStepUpNote = enharmonisedTransposedStepUpNote;
   }
-  return transposedStepUpNote;
+  return transposedStepUpNote + lengthToken;
 };
 
 export const transposeStepDownTransform = (

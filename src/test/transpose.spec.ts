@@ -49,6 +49,8 @@ describe("Transpose and rest", function () {
       assert.equal(octaviateDownTransform("^a"), "^A");
       assert.equal(octaviateDownTransform("^A"), "^A,");
       assert.equal(octaviateDownTransform("^A,"), "^A,,");
+      assert.equal(octaviateDownTransform("^A2"), "^A,2");
+      assert.equal(octaviateDownTransform("^A/2"), "^A,/2");
     });
     it("octave up single letters", function () {
       assert.equal(octaviateUpTransform("A,,"), "A,");
@@ -56,6 +58,8 @@ describe("Transpose and rest", function () {
       assert.equal(octaviateUpTransform("A"), "a");
       assert.equal(octaviateUpTransform("a"), "a'");
       assert.equal(octaviateUpTransform("a'"), "a''");
+      assert.equal(octaviateUpTransform("^A2"), "^a2");
+      assert.equal(octaviateUpTransform("^A/2"), "^a/2");
     });
     it("up a half step", function () {
       assert.equal(transposeHalfStepUpTransform("^e'"), "^f'");
@@ -69,6 +73,9 @@ describe("Transpose and rest", function () {
       assert.equal(transposeHalfStepUpTransform("G,"), "^G,");
       assert.equal(transposeHalfStepUpTransform("_g'"), "g'");
       assert.equal(transposeHalfStepUpTransform("_G,"), "G,");
+      assert.equal(transposeHalfStepUpTransform("_G,/"), "G,/");
+      assert.equal(transposeHalfStepUpTransform("_G,2"), "G,2");
+      assert.equal(transposeHalfStepUpTransform("_G,/2"), "G,/2");
     });
     it("down a half step", function () {
       assert.equal(transposeHalfStepDownTransform("_e"), "d");
@@ -84,11 +91,15 @@ describe("Transpose and rest", function () {
       assert.equal(transposeHalfStepDownTransform("^G,"), "G,");
       assert.equal(transposeHalfStepDownTransform("g'"), "_g'");
       assert.equal(transposeHalfStepDownTransform("G,"), "_G,");
+      assert.equal(transposeHalfStepDownTransform("G,2"), "_G,2");
+      assert.equal(transposeHalfStepDownTransform("G,/2"), "_G,/2");
     });
     it("1 step up", function () {
       assert.equal(transposeStepUpTransform("C,"), "D,");
       assert.equal(transposeStepUpTransform("B,"), "^C");
       assert.equal(transposeStepUpTransform("_B,"), "C");
+      assert.equal(transposeStepUpTransform("_B,/"), "C/");
+      assert.equal(transposeStepUpTransform("_B,4"), "C4");
       assert.equal(
         transposeStepUpTransform("_A,", "[K:Bb]" as KeyIndicationType),
         "_B,"
