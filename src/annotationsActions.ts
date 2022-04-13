@@ -7,6 +7,11 @@ import {
   TransformFunction,
 } from "./transformPitches";
 import { turnNotesToRests } from "./test/testTransposeFunctions";
+import {
+  addNomenclatureToHeader,
+  buildBodyFromInstruments,
+  separateHeaderAndBody,
+} from "./fileStructureActions";
 
 export type abcText = string;
 export enum annotationCommandEnum {
@@ -78,7 +83,7 @@ export const findInstrumentCalls = (
   return parsedFamilies as InstrumentCalls[];
 };
 
-export const createOrUpdateHarmonizationRoutine = async (
+export const createOrUpdateHarmonizationRoutine = (
   abcText: abcText,
   annotationCommand: annotationCommandEnum,
   scoreFilePath: string
@@ -88,27 +93,46 @@ export const createOrUpdateHarmonizationRoutine = async (
     path.parse(scoreFilePath).name +
       `.${annotationCommandEnum.createHarmonisationFile}.abc`
   );
-  await fs.writeFile(dirTarget, abcText, "utf-8");
   return;
 };
 
-export const createOrUpdateInstrumentationRoutine = async (
-  abcText: abcText,
-  annotationCommand: annotationCommandEnum,
-  scoreFilePath: string
-) => {
-  const dirTarget = path.join(
-    path.dirname(scoreFilePath),
-    path.parse(scoreFilePath).name +
-      `.${annotationCommandEnum.createHarmonisationFile}.abc`
+export const createInstrumentationRoutine = (abcText: abcText) => {
+  const headerAndBody = separateHeaderAndBody(abcText, { pos: 0 });
+
+  let parsedInstrumentFamilies = findInstrumentCalls(headerAndBody.bodyText, {
+    pos: 0,
+  });
+  headerAndBody.headerText = addNomenclatureToHeader(
+    headerAndBody.headerText,
+    parsedInstrumentFamilies.map((instrument) => Object.keys(instrument)[0])
   );
-  await fs.writeFile(dirTarget, abcText, "utf-8");
-  //read file, turn any sections that are not within instrument tags into rests
-  return;
+  headerAndBody.bodyText = buildBodyFromInstruments(parsedInstrumentFamilies);
+  return Object.values(headerAndBody).join("\n");
 };
 
 export const parseUniqueTags = (text: abcText): string[] => {
-  let tags = text.match(/(["])(?:(?=(\\?))\2.)*?\1/g);
+  let pos = -1;
+  let hasStartedComment = false;
+  let tags = [];
+  let curComment = "";
+  while (pos < text.length) {
+    pos += 1;
+    if (hasStartedComment) {
+      curComment += text.charAt(pos);
+    }
+    if (text.charAt(pos) === '"') {
+      if (!hasStartedComment) {
+        pos += 1;
+        hasStartedComment = true;
+        curComment += text.charAt(pos);
+      } else {
+        tags.push(curComment.slice());
+        curComment = "";
+        hasStartedComment = false;
+      }
+    }
+  }
+  //let tags = text.match(/(["])(?:(?=(\\?))\2.)*?\1/g);
   let uniqueTags = [
     ...new Set(
       tags

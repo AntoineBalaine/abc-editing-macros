@@ -1,14 +1,10 @@
-import {
-  chordText,
-  reorderChord,
-} from "./src/transformChords";
+import { chordText, reorderChord } from "./src/transformChords";
 import {
   consolidateConsecutiveNotesTransform,
   duplicateLengthTransform,
   divideLengthTransform,
   sortedLengthsObj,
-}
-  from "./src/transformRests";
+} from "./src/transformRests";
 import {
   isLetter,
   isNoteToken,
@@ -20,22 +16,19 @@ import {
   NOTES_UPPERCASE,
   dispatcherFunction,
   dispatcher,
-}
-  from "./src/dispatcher";
+} from "./src/dispatcher";
 import {
   isNomenclatureTag,
   isNomenclatureLine,
   jumpToEndOfNomenclatureTag,
   jumpToEndOfNomenclatureLine,
   jumpToEndOfSymbol,
-}
-  from "./src/parseNomenclature";
+} from "./src/parseNomenclature";
 import {
   findKeySignature,
   findUnalteredPitch,
   findNotesInKey,
-}
-  from "./src/parsekeySignature";
+} from "./src/parsekeySignature";
 import {
   abcText,
   annotationCommandEnum,
@@ -43,19 +36,16 @@ import {
   instrumentFamilies,
   InstrumentCalls,
   findInstrumentCalls,
-  createOrUpdateHarmonizationRoutine,
-  createOrUpdateInstrumentationRoutine,
+  createInstrumentationRoutine,
   parseUniqueTags,
   parseAnnotation,
-}
-  from "./src/annotationsActions";
+} from "./src/annotationsActions";
 import {
   isHeaderLine,
   separateHeaderAndBody,
   addNomenclatureToHeader,
   buildBodyFromInstruments,
-}
-  from "./src/fileStructureActions";
+} from "./src/fileStructureActions";
 import {
   isLowerCase,
   octaviateDownTransform,
@@ -70,15 +60,8 @@ import {
   transposeStepDownTransform,
   contextObj,
   TransformFunction,
-}
-  from "./src/transformPitches";
-import {
-  parseRhythmToken,
-  parseNote,
-}
-  from "./src/parseNotes";
-
-
+} from "./src/transformPitches";
+import { parseRhythmToken, parseNote } from "./src/parseNotes";
 
 export {
   abcText,
@@ -91,8 +74,7 @@ export {
   contextObj,
   convertToEnharmoniaTransform,
   convertToRestTransform,
-  createOrUpdateHarmonizationRoutine,
-  createOrUpdateInstrumentationRoutine,
+  createInstrumentationRoutine,
   dispatcher,
   dispatcherFunction,
   divideLengthTransform,
@@ -134,4 +116,4 @@ export {
   transposeHalfStepUpTransform,
   transposeStepDownTransform,
   transposeStepUpTransform,
-}
+};
