@@ -9,9 +9,9 @@
   ],
   "scripts": {
     "test": "mocha -r ts-node/register src/**/*.spec.ts",
-    "testJS": "tsc && mocha dist/src/**/*.spec.js",
+    "testJS": "tsc && mocha lib/src/**/*.spec.js",
     "start-dev": "ts-node index.ts",
-    "start": "node dist/index.js",
+    "start": "node lib/index.js",
     "build": "tsc"
   },
   "keywords": [],
