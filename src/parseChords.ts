@@ -11,7 +11,10 @@ export const parseChord: dispatcherFunction = (
   while (context.pos < text.length) {
     context.pos += 1;
     chord += text.charAt(context.pos);
-    if (text.charAt(context.pos) === "]") break;
+    if (text.charAt(context.pos) === "]") {
+      context.pos += 1;
+      break;
+    }
   }
   return (
     transformFunction(chord) + chordDispatcher(text, context, transformFunction)
