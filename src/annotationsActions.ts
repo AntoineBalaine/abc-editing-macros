@@ -6,15 +6,20 @@ import {
   isLetter,
   isPitchToken,
   isRhythmToken,
+  chordDispatcher,
 } from "./dispatcher";
-import { contextObj, convertToRestTransform } from "./transformPitches";
+import {
+  contextObj,
+  convertToRestTransform,
+  TransformFunction,
+} from "./transformPitches";
 import { turnNotesToRests } from "./test/testTransposeFunctions";
 import {
   addNomenclatureToHeader,
   buildBodyFromInstruments,
   separateHeaderAndBody,
 } from "./fileStructureActions";
-import { chordText } from "./transformChords";
+import { chordText, consolidateRestsInChordTransform } from "./transformChords";
 
 export type abcText = string;
 export enum annotationCommandEnum {
@@ -103,9 +108,18 @@ export const consolidateRestsInRoutine = (tuneBody: abcText) => {
   //split song at every bar,
   const splitBars = tuneBody.split(/[\n|]/g);
   //remove rests in chords that also have notes
-  splitBars.map((bar) => {});
-  //remove chord notation from chords that only have rests
+  //consolidate chords that only carry rests
+  splitBars.map((bar) => {
+    chordDispatcher(
+      bar,
+      { pos: 0 },
+      consolidateRestsInChordTransform as TransformFunction
+    );
+  });
   //consolidateRests for each bar
+  /*
+
+  */
 };
 
 export const createInstrumentationRoutine = (abcText: abcText) => {

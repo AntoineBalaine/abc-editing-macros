@@ -64,6 +64,18 @@ describe("Harmonise", function () {
         consolidateRestsInChordTransform as TransformFunction
       ),
         "z/2";
+      chordDispatcher(
+        "[zaz]/2" as chordText,
+        { pos: 0 },
+        consolidateRestsInChordTransform as TransformFunction
+      ),
+        "a/2";
+      chordDispatcher(
+        "[zazb]/2" as chordText,
+        { pos: 0 },
+        consolidateRestsInChordTransform as TransformFunction
+      ),
+        "[ab]/2";
     });
   });
   /*     

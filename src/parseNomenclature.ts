@@ -5,6 +5,13 @@ import {
   dispatcherFunction,
 } from "./dispatcher";
 import { contextObj, TransformFunction } from "./transformPitches";
+export type dispatcherProps = {
+  text: abcText;
+  context: contextObj;
+  transformFunction: TransformFunction;
+  dispatcherFunction: dispatcherFunction;
+  tag?: annotationStyle;
+};
 
 export const isNomenclatureTag = (text: abcText, context: contextObj) => {
   const subTag = text.substring(context.pos, text.indexOf("]", context.pos));
@@ -13,54 +20,60 @@ export const isNomenclatureTag = (text: abcText, context: contextObj) => {
 export const isNomenclatureLine = (text: abcText, context: contextObj) => {
   return /(^([a-zA-Z]:)|%)/i.test(text.substring(context.pos));
 };
-export const jumpToEndOfNomenclatureTag = (
-  text: abcText,
-  context: contextObj,
-  transformFunction: TransformFunction,
-  tag?: annotationStyle
-) => {
+export const jumpToEndOfNomenclatureTag = ({
+  text,
+  context,
+  transformFunction,
+  dispatcherFunction,
+  tag,
+}: dispatcherProps) => {
   const indexOfTagEnd = text.indexOf("]", context.pos + 1);
   const nomenclatureTag = text.substring(context.pos, indexOfTagEnd + 1);
   context.pos = indexOfTagEnd + 1;
   return (
-    nomenclatureTag + noteDispatcher(text, context, transformFunction, tag)
+    nomenclatureTag + dispatcherFunction(text, context, transformFunction, tag)
   );
 };
 
-export const jumpToEndOfNomenclatureLine = (
-  text: abcText,
-  context: contextObj,
-  transformFunction: TransformFunction,
-  tag?: annotationStyle
-) => {
+export const jumpToEndOfNomenclatureLine = ({
+  text,
+  context,
+  transformFunction,
+  dispatcherFunction,
+  tag,
+}: dispatcherProps) => {
   const nextLineBreak = text.indexOf("\n", context.pos + 1);
   const nomenclature = text.substring(
     context.pos,
     nextLineBreak < 0 ? text.length : nextLineBreak
   );
   context.pos = nextLineBreak < 0 ? text.length : nextLineBreak;
-  return nomenclature + noteDispatcher(text, context, transformFunction, tag);
+  return (
+    nomenclature + dispatcherFunction(text, context, transformFunction, tag)
+  );
 };
 
-export const jumpToEndOfSymbol: dispatcherFunction = (
+export const jumpToEndOfSymbol = ({
   text,
   context,
   transformFunction,
-  tag
-) => {
+  dispatcherFunction,
+  tag,
+}: dispatcherProps) => {
   const endOfSymbolIndex = text.indexOf("!", context.pos + 1);
   const symbol = text.substring(context.pos, endOfSymbolIndex + 1);
   context.pos = context.pos + symbol.length;
-  return symbol + noteDispatcher(text, context, transformFunction, tag);
+  return symbol + dispatcherFunction(text, context, transformFunction, tag);
 };
 
-export const jumpToEndOfAnnotation: dispatcherFunction = (
+export const jumpToEndOfAnnotation = ({
   text,
   context,
-  transformFunction
-) => {
+  transformFunction,
+  dispatcherFunction,
+}: dispatcherProps) => {
   const endOfannotationIndex = text.indexOf('"', context.pos + 1);
   const annotation = text.substring(context.pos, endOfannotationIndex + 1);
   context.pos = context.pos + annotation.length;
-  return annotation + chordDispatcher(text, context, transformFunction);
+  return annotation + dispatcherFunction(text, context, transformFunction);
 };

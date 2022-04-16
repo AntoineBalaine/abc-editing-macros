@@ -18,6 +18,7 @@ import {
   turnNotesToRests,
 } from "./testTransposeFunctions";
 import {
+  dispatcherProps,
   isNomenclatureLine,
   isNomenclatureTag,
   jumpToEndOfSymbol,
@@ -300,12 +301,12 @@ describe("Nomenclature", function () {
     it("leave symbols untouched", function () {
       const symbol = "!fermata!";
       assert.equal(
-        jumpToEndOfSymbol(
-          symbol as abcText,
-          { pos: 0 },
-          () => "",
-          "" as annotationStyle
-        ),
+        jumpToEndOfSymbol({
+          text: symbol,
+          context: { pos: 0 },
+          transformFunction: () => "",
+          dispatcherFunction: noteDispatcher,
+        } as dispatcherProps),
         symbol
       );
     });
