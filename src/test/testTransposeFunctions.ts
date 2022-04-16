@@ -1,4 +1,4 @@
-import { dispatcher } from "../dispatcher";
+import { noteDispatcher } from "../dispatcher";
 import {
   octaviateUpTransform,
   octaviateDownTransform,
@@ -9,23 +9,23 @@ import {
 
 export const transposeOctUp = (input: string) => {
   let context = { pos: 0 };
-  return dispatcher(input, context, octaviateUpTransform);
+  return noteDispatcher(input, context, octaviateUpTransform);
 };
 
 export const transposeOctDown = (input: string) => {
   let context = { pos: 0 };
-  return dispatcher(input, context, octaviateDownTransform);
+  return noteDispatcher(input, context, octaviateDownTransform);
 };
 
 export const transposeHalfStepUp = (input: string) => {
   let context = { pos: 0 };
-  return dispatcher(input, context, transposeHalfStepUpTransform);
+  return noteDispatcher(input, context, transposeHalfStepUpTransform);
 };
 export const transposeHalfStepDown = (input: string) => {
   let context = { pos: 0 };
-  return dispatcher(input, context, transposeHalfStepDownTransform);
+  return noteDispatcher(input, context, transposeHalfStepDownTransform);
 };
 export const turnNotesToRests = (input: string) => {
   let context = { pos: 0 };
-  return dispatcher(input, context, convertToRestTransform);
+  return noteDispatcher(input, context, convertToRestTransform);
 };

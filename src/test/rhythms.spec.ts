@@ -1,6 +1,6 @@
 import assert from "assert";
 import { abcText } from "../annotationsActions";
-import { dispatcher } from "../dispatcher";
+import { noteDispatcher } from "../dispatcher";
 import { parseNote } from "../parseNotes";
 import {
   consolidateConsecutiveNotesTransform,
@@ -82,20 +82,23 @@ describe("Rhythms", function () {
     //todo, account for broken rhythms
     it("duplicates note's length", function () {
       assert.equal(
-        dispatcher("a/2", { pos: 0 }, duplicateLengthTransform),
+        noteDispatcher("a/2", { pos: 0 }, duplicateLengthTransform),
         "a"
       );
     });
     it("divides note's length", function () {
-      assert.equal(dispatcher("a", { pos: 0 }, divideLengthTransform), "a/");
+      assert.equal(
+        noteDispatcher("a", { pos: 0 }, divideLengthTransform),
+        "a/"
+      );
     });
     it("duplicates and divides broken rhythms", function () {
       assert.equal(
-        dispatcher("a/2>a/2", { pos: 0 }, duplicateLengthTransform),
+        noteDispatcher("a/2>a/2", { pos: 0 }, duplicateLengthTransform),
         "a>a"
       );
       assert.equal(
-        dispatcher("a>a", { pos: 0 }, divideLengthTransform),
+        noteDispatcher("a>a", { pos: 0 }, divideLengthTransform),
         "a/>a/"
       );
     });

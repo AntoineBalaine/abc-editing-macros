@@ -1,4 +1,4 @@
-import { dispatcher, isNoteToken } from "../dispatcher";
+import { noteDispatcher, isNoteToken } from "../dispatcher";
 import {
   convertToEnharmoniaTransform,
   convertToRestTransform,
@@ -231,11 +231,11 @@ describe("Transpose and rest", function () {
     });
     it("1 step up", function () {
       assert.equal(
-        dispatcher("C,E,_G,B,,_e", { pos: 0 }, transposeStepUpTransform),
+        noteDispatcher("C,E,_G,B,,_e", { pos: 0 }, transposeStepUpTransform),
         "D,^F,^G,^C,f"
       );
       assert.equal(
-        dispatcher("C,E,G,B,,e", { pos: 0 }, (note: string) =>
+        noteDispatcher("C,E,G,B,,e", { pos: 0 }, (note: string) =>
           transposeStepUpTransform(note, "[K:A]")
         ),
         "D,^F,A,^C,^f"
@@ -243,11 +243,11 @@ describe("Transpose and rest", function () {
     });
     it("1 step down", function () {
       assert.equal(
-        dispatcher("C,E,^F,B,,_e", { pos: 0 }, transposeStepDownTransform),
+        noteDispatcher("C,E,^F,B,,_e", { pos: 0 }, transposeStepDownTransform),
         "_B,D,E,A,_d"
       );
       assert.equal(
-        dispatcher("^C,E,G,B,,e", { pos: 0 }, (note: string) =>
+        noteDispatcher("^C,E,G,B,,e", { pos: 0 }, (note: string) =>
           transposeStepDownTransform(note, "[K:A]")
         ),
         "B,D,^E,A,d"
@@ -317,7 +317,7 @@ describe("Nomenclature", function () {
   describe("using dispatcher function", function () {
     it("recognizes line comments", function () {
       assert.equal(
-        dispatcher(
+        noteDispatcher(
           nomenclature as abcText,
           { pos: 0 },
           () => "",
@@ -326,7 +326,7 @@ describe("Nomenclature", function () {
         nomenclature
       );
       assert.equal(
-        dispatcher(
+        noteDispatcher(
           nomenclature2 as abcText,
           { pos: 0 },
           () => "",
@@ -335,7 +335,7 @@ describe("Nomenclature", function () {
         nomenclature2
       );
       assert.equal(
-        dispatcher(
+        noteDispatcher(
           nomenclature3 as abcText,
           { pos: 0 },
           () => "",
@@ -344,7 +344,7 @@ describe("Nomenclature", function () {
         nomenclature3
       );
       assert.notEqual(
-        dispatcher(
+        noteDispatcher(
           notNomenclature as abcText,
           { pos: 0 },
           () => "",
@@ -392,7 +392,7 @@ describe("Nomenclature", function () {
     it("leave symbols untouched", function () {
       const symbol = "abc!fermata!abc";
       assert.equal(
-        dispatcher(
+        noteDispatcher(
           symbol as abcText,
           { pos: 0 },
           (note: string) => note,
@@ -401,17 +401,17 @@ describe("Nomenclature", function () {
         symbol
       );
     });
-    it("differenciates chord from nomenclature brackets", function () {
+    it("dispatcher: differenciates chord from nomenclature brackets", function () {
       assert.equal(
-        dispatcher("[K: F minor]", { pos: 0 }, (n) => ""),
+        noteDispatcher("[K: F minor]", { pos: 0 }, (n) => ""),
         "[K: F minor]"
       );
       assert.equal(
-        dispatcher("[abcde]", { pos: 0 }, (n) => ""),
+        noteDispatcher("[abcde]", { pos: 0 }, (n) => ""),
         "[]"
       );
       assert.equal(
-        dispatcher("[abcde][K: F minor]", { pos: 0 }, (n) => ""),
+        noteDispatcher("[abcde][K: F minor]", { pos: 0 }, (n) => ""),
         "[][K: F minor]"
       );
     });

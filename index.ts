@@ -1,4 +1,4 @@
-import { chordText, reorderChord } from "./src/transformChords";
+import { chordText, reorderChordTransform } from "./src/transformChords";
 import {
   consolidateConsecutiveNotesTransform,
   duplicateLengthTransform,
@@ -15,7 +15,7 @@ import {
   NOTES_LOWERCASE,
   NOTES_UPPERCASE,
   dispatcherFunction,
-  dispatcher,
+  noteDispatcher,
 } from "./src/dispatcher";
 import {
   isNomenclatureTag,
@@ -38,8 +38,8 @@ import {
   findInstrumentCalls,
   createInstrumentationRoutine,
   parseUniqueTags,
-  parseAnnotation,
 } from "./src/annotationsActions";
+import { parseAnnotation } from "./src/parseAnnotation";
 import {
   isHeaderLine,
   separateHeaderAndBody,
@@ -75,7 +75,7 @@ export {
   convertToEnharmoniaTransform,
   convertToRestTransform,
   createInstrumentationRoutine,
-  dispatcher,
+  noteDispatcher as dispatcher,
   dispatcherFunction,
   divideLengthTransform,
   duplicateLengthTransform,
@@ -108,7 +108,7 @@ export {
   parseNote,
   parseRhythmToken,
   parseUniqueTags,
-  reorderChord,
+  reorderChordTransform as reorderChord,
   separateHeaderAndBody,
   sortedLengthsObj,
   TransformFunction,

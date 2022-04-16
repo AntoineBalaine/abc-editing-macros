@@ -2,7 +2,7 @@ import { abcText, annotationStyle } from "./annotationsActions";
 import {
   isLetter,
   isOctaveToken,
-  dispatcher,
+  noteDispatcher,
   dispatcherFunction,
   isRhythmToken,
 } from "./dispatcher";
@@ -45,6 +45,6 @@ export const parseNote = (
   }
   return (
     transformFunction(retString) +
-    dispatcher(text, context, transformFunction, tag)
+    noteDispatcher(text, context, transformFunction, tag)
   );
 };

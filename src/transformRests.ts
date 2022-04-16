@@ -1,5 +1,5 @@
 import { abcText } from "./annotationsActions";
-import { dispatcher } from "./dispatcher";
+import { noteDispatcher } from "./dispatcher";
 
 const isDivided = (rest: string) => /\//i.test(rest);
 const isMultiplied = (rest: string) => /[a-gA-Gz][,']*?[0-9]/i.test(rest);
@@ -31,7 +31,7 @@ const groupNotesByLength = (res: any[], curr: abcText) => {
 export const consolidateConsecutiveNotesTransform = (
   text: abcText
 ): abcText => {
-  const notesJson = dispatcher(
+  const notesJson = noteDispatcher(
     text,
     { pos: 0 },
     (note: abcText) => `"${note}",`

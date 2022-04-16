@@ -10,21 +10,11 @@ import {
   findInstrumentCalls,
 } from "../annotationsActions";
 import path from "path";
-import { dispatcher } from "../dispatcher";
+import { noteDispatcher } from "../dispatcher";
 import { convertToRestTransform } from "../transformPitches";
 const scoreFilePath = "src/test/test_out/BachCelloSuiteDmin.abc";
 const sampleScore = fs.readFileSync(scoreFilePath, "utf-8");
 
-/* à faire:
-- crée un fichier à partir du contenu en annotations dans un string ABC .
--copie les parties qui y sont indiquées
-Serait-il pertinent de garder la synchro entre les sous-parties? harmo, instruments…
-
-Couches d'arrangement:
-    1. routine
-    2. harmonisations
-    3. familles d'instruments
-*/
 describe("Annotate", function () {
   it("correctly parses unique tags in score", function () {
     expect(parseUniqueTags('abC,d"str"ddDD"/str"')).to.eql(["str"]);
@@ -65,7 +55,7 @@ describe("Arrange", function () {
     it("strips annotations of any instrument references", function () {
       let annotation = '"str soli"A,B,CDEFG"/str"';
       assert.equal(
-        dispatcher(
+        noteDispatcher(
           annotation,
           { pos: 0 },
           () => "",
@@ -77,7 +67,7 @@ describe("Arrange", function () {
     it("turns all parts outside of instrument tags into rests", function () {
       let annotation = 'AbcD,E,"str soli"A,B,CDEFG"/str"D^FAc';
       assert.equal(
-        dispatcher(
+        noteDispatcher(
           annotation,
           { pos: 0 },
           convertToRestTransform,

@@ -1,12 +1,70 @@
 import assert from "assert";
 import { expect } from "chai";
-import { chordText, reorderChord } from "../transformChords";
+import { abcText } from "../annotationsActions";
+import { chordDispatcher } from "../dispatcher";
+import {
+  chordText,
+  consolidateRestsInChordTransform,
+  reorderChordTransform,
+} from "../transformChords";
+import { TransformFunction } from "../transformPitches";
 
 describe("Harmonise", function () {
-  it("Re-orders chords from lowest to highest notes", function () {
-    assert.equal(reorderChord("[acbe]" as chordText), "[ceab]");
-    assert.equal(reorderChord("[AcBe]" as chordText), "[ABce]");
-    assert.equal(reorderChord("[fA,c'G]" as chordText), "[A,Gfc']");
+  describe("using transform functions", function () {
+    it("Re-orders chords from lowest to highest notes", function () {
+      assert.equal(reorderChordTransform("[acbe]" as chordText), "[ceab]");
+      assert.equal(reorderChordTransform("[AcBe]" as chordText), "[ABce]");
+      assert.equal(reorderChordTransform("[fA,c'G]" as chordText), "[A,Gfc']");
+    });
+
+    it("consolidates chord's multiple rests into a single value", function () {
+      consolidateRestsInChordTransform("[A,F,,Bc'zd'']/2" as chordText),
+        "[abcd]/2";
+      consolidateRestsInChordTransform("[zzz]/2" as chordText), "z/2";
+    });
+  });
+  describe("using chordDispatcher", function () {
+    it("Re-orders chords from lowest to highest notes", function () {
+      assert.equal(
+        chordDispatcher(
+          "[acbe]" as chordText,
+          { pos: 0 },
+          reorderChordTransform as TransformFunction
+        ),
+        "[ceab]"
+      );
+      assert.equal(
+        chordDispatcher(
+          "[AcBe]" as chordText,
+          { pos: 0 },
+          reorderChordTransform as TransformFunction
+        ),
+        "[ABce]"
+      );
+      assert.equal(
+        chordDispatcher(
+          "[fA,c'G]" as chordText,
+          { pos: 0 },
+          reorderChordTransform as TransformFunction
+        ),
+        "[A,Gfc']"
+      );
+    });
+
+    it("consolidates chord's multiple rests into a single value", function () {
+      chordDispatcher(
+        "[A,F,,Bc'zd'']/2" as chordText,
+        { pos: 0 },
+        consolidateRestsInChordTransform as TransformFunction
+      ),
+        "[abcd]/2";
+      chordDispatcher(
+        "[zzz]/2" as chordText,
+        { pos: 0 },
+        consolidateRestsInChordTransform as TransformFunction
+      ),
+        "z/2";
+    });
   });
   /*     
     it('Can build chords from chord symbol', function(){

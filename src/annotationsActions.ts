@@ -1,17 +1,20 @@
 import { promises as fs } from "fs";
 import path from "path";
-import { dispatcher, isAlterationToken, isLetter } from "./dispatcher";
 import {
-  contextObj,
-  convertToRestTransform,
-  TransformFunction,
-} from "./transformPitches";
+  noteDispatcher,
+  isAlterationToken,
+  isLetter,
+  isPitchToken,
+  isRhythmToken,
+} from "./dispatcher";
+import { contextObj, convertToRestTransform } from "./transformPitches";
 import { turnNotesToRests } from "./test/testTransposeFunctions";
 import {
   addNomenclatureToHeader,
   buildBodyFromInstruments,
   separateHeaderAndBody,
 } from "./fileStructureActions";
+import { chordText } from "./transformChords";
 
 export type abcText = string;
 export enum annotationCommandEnum {
@@ -72,7 +75,7 @@ export const findInstrumentCalls = (
   );
   const parsedFamilies = uniqueFamilyTags.map((tag) => {
     return {
-      [tag]: dispatcher(
+      [tag]: noteDispatcher(
         text,
         { pos: 0 },
         convertToRestTransform,
@@ -94,6 +97,15 @@ export const createOrUpdateHarmonizationRoutine = (
       `.${annotationCommandEnum.createHarmonisationFile}.abc`
   );
   return;
+};
+
+export const consolidateRestsInRoutine = (tuneBody: abcText) => {
+  //split song at every bar,
+  const splitBars = tuneBody.split(/[\n|]/g);
+  //remove rests in chords that also have notes
+  splitBars.map((bar) => {});
+  //remove chord notation from chords that only have rests
+  //consolidateRests for each bar
 };
 
 export const createInstrumentationRoutine = (abcText: abcText) => {
@@ -145,7 +157,9 @@ export const parseUniqueTags = (text: abcText): string[] => {
   return uniqueTags;
 };
 
-const removeInstrumentTagsFromAnnotation = (annotationText: string): string => {
+export const removeInstrumentTagsFromAnnotation = (
+  annotationText: string
+): string => {
   const tagsInAnnotation = parseUniqueTags(annotationText).filter((tag) =>
     Object.values(instrumentFamilies).includes(tag as instrumentFamilies)
   );
@@ -162,64 +176,3 @@ const removeInstrumentTagsFromAnnotation = (annotationText: string): string => {
   );
   return annotationText;
 };
-
-export function parseAnnotation(
-  text: string,
-  context: contextObj,
-  tag: annotationStyle,
-  transformFunction: TransformFunction
-): string {
-  let retStr = "";
-  const sections = text
-    .substring(context.pos)
-    .split(/(\"[^\".]*\")/g)
-    .filter((n) => n);
-  //subdivise le tableau entre sections contenues dans les tags, et les autres
-
-  let subSections = [];
-
-  if (sections[0][0] === '"' && !sections[0].includes(tag)) {
-    const purgedSections = removeInstrumentTagsFromAnnotation(
-      sections[0]
-    ).replace(/\"(\s*)?\"/g, "");
-    context.pos = context.pos + sections[0].length;
-    return purgedSections + dispatcher(text, context, transformFunction, tag);
-  } else {
-    for (let i = 0; i < sections.length; i++) {
-      if (sections[i][0] === '"' && sections[i].includes(tag)) {
-        let tagsection = [removeInstrumentTagsFromAnnotation(sections[i])];
-        while (i < sections.length) {
-          i += 1;
-          if (sections[i][0] === '"' && sections[i].includes(`/${tag}`)) {
-            tagsection.push(removeInstrumentTagsFromAnnotation(sections[i]));
-            break;
-          } else if (
-            sections[i][0] === '"' &&
-            !sections[i].includes(`/${tag}`)
-          ) {
-            tagsection.push(removeInstrumentTagsFromAnnotation(sections[i]));
-          } else tagsection.push(sections[i]);
-        }
-        subSections.push(tagsection);
-      } else {
-        subSections.push(sections[i]);
-      }
-    }
-    return subSections
-      .map((subSection) => {
-        if (Array.isArray(subSection)) {
-          return [
-            removeInstrumentTagsFromAnnotation(subSection[0]),
-            ...subSection.slice(1, subSection.length - 1),
-            removeInstrumentTagsFromAnnotation(
-              subSection[subSection.length - 1]
-            ),
-          ];
-        } else
-          return dispatcher(subSection, { pos: 0 }, transformFunction, tag);
-      })
-      .flat()
-      .join("")
-      .replace(/\"(\s*)?\"/g, "");
-  }
-}

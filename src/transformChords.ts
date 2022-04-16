@@ -1,13 +1,13 @@
 import { abcText } from "./annotationsActions";
-import { dispatcher } from "./dispatcher";
+import { noteDispatcher, isPitchToken, isRhythmToken } from "./dispatcher";
 import { isLowerCase } from "./transformPitches";
 
 export type chordText = `[${abcText}]`;
 
 const orderOfNotes = "cdefgab".split("");
-export const reorderChord = (chord: chordText) => {
+export const reorderChordTransform = (chord: chordText): string => {
   //split ${chord} into a json array
-  const strNotes = dispatcher(
+  const strNotes = noteDispatcher(
     chord,
     { pos: 0 },
     (note: abcText) => `"${note}",`
@@ -119,4 +119,17 @@ export const reorderChord = (chord: chordText) => {
       .join("") +
     "]"
   );
+};
+
+export const consolidateRestsInChordTransform = (chord: chordText) => {
+  let chordPitches = chord
+    .split("")
+    .filter((e) => !isRhythmToken(e))
+    .filter((n) => isPitchToken(n));
+  let rhythmTokens = chord.split("").filter((e) => isRhythmToken(e));
+  if (chordPitches.every((n) => n === "z")) {
+    return "z" + rhythmTokens.join("");
+  } else {
+    return `[${chordPitches.filter((e) => e !== "z")}]${rhythmTokens.join("")}`;
+  }
 };
