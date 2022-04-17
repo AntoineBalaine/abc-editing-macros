@@ -6,6 +6,7 @@ import {
   dispatcherFunction,
   isRhythmToken,
 } from "./dispatcher";
+import { dispatcherProps } from "./parseNomenclature";
 import { contextObj, TransformFunction } from "./transformPitches";
 
 export const parseRhythmToken = (text: abcText, context: contextObj) => {
@@ -29,8 +30,8 @@ export const parseNote = (
   transformFunction: TransformFunction,
   tag?: annotationStyle
 ): string => {
-  let retString = text.charAt(context.pos);
-  let foundLetter = isLetter(retString);
+  let note = text.charAt(context.pos);
+  let foundLetter = isLetter(note);
   while (context.pos < text.length) {
     context.pos += 1;
     if (
@@ -40,11 +41,34 @@ export const parseNote = (
     ) {
       if (!foundLetter && isLetter(text.charAt(context.pos)))
         foundLetter = true;
-      retString += text.charAt(context.pos);
+      note += text.charAt(context.pos);
     } else break;
   }
   return (
-    transformFunction(retString) +
+    transformFunction(note) +
     noteDispatcher(text, context, transformFunction, tag)
   );
+};
+
+export const jumpToEndOfNote = ({
+  text,
+  context,
+  transformFunction,
+  dispatcherFunction,
+}: dispatcherProps) => {
+  let note = text.charAt(context.pos);
+  let foundLetter = isLetter(note);
+  while (context.pos < text.length) {
+    context.pos += 1;
+    if (
+      (!foundLetter && isLetter(text.charAt(context.pos))) ||
+      (foundLetter && isOctaveToken(text.charAt(context.pos))) ||
+      (foundLetter && isRhythmToken(text.charAt(context.pos)))
+    ) {
+      if (!foundLetter && isLetter(text.charAt(context.pos)))
+        foundLetter = true;
+      note += text.charAt(context.pos);
+    } else break;
+  }
+  return note + dispatcherFunction(text, context, transformFunction);
 };

@@ -1,36 +1,44 @@
-import { findTokenType, restDispatcher } from "./dispatcher";
+import { findTokenType, isRhythmToken, restDispatcher } from "./dispatcher";
+import { dispatcherProps } from "./parseNomenclature";
 import { contextObj, TransformFunction } from "./transformPitches";
+import { consolidateConsecutiveNotesTransform } from "./transformRests";
 
-export const parseConsecutiveRests = (
-  text: string,
-  context: contextObj,
-  transformFunction: TransformFunction
-): string => {
-  //Get chords that carry only rests
-  //en ignorant les articulations aux extrémités et dans la suite de silences
-  let restSeries = text.charAt(context.pos);
-  while (context.pos < text.length) {
-    context.pos += 1;
-    if (
-      findTokenType(text, context) === "note" ||
-      findTokenType(text, context) === "barLine" ||
-      findTokenType(text, context) === "annotation"
-    )
-      break;
-    else restSeries += text.charAt(context.pos);
-  }
-  //remove articulations
-  //consolidate rests
-  let restSeriesContext = { pos: -1 };
+export const parseConsecutiveRests = ({
+  text,
+  context,
+  transformFunction,
+  dispatcherFunction,
+}: dispatcherProps): string => {
+  // lire les silences consécutifs en ignorant les articulations,
+  //mais sans ignorer les symboles, les annotations, les nomenclatures et les notes
+  // consolidateRests()
   let consecutiveRests = "";
-
-  while (restSeriesContext) {
-    restSeriesContext.pos += 1;
-    if (findTokenType(text, restSeriesContext) === "rest")
-      consecutiveRests += text.charAt(restSeriesContext.pos);
+  while (context.pos < text.length) {
+    let curChar = text.charAt(context.pos);
+    let curToken = findTokenType(text, context);
+    if (
+      curToken === "annotation" ||
+      curToken === "nomenclature line" ||
+      curToken === "nomenclature tag" ||
+      curToken === "note" ||
+      curToken === "symbol"
+    ) {
+      break;
+    } else if (curToken === "articulation" || curToken === "unmatched") {
+      context.pos += 1;
+      continue;
+    } else if (curToken === "rest") {
+      //find if following chars ar rhythm tokens
+      consecutiveRests += curChar;
+      context.pos += 1;
+      while (isRhythmToken(text.charAt(context.pos))) {
+        consecutiveRests += text.charAt(context.pos);
+        context.pos += 1;
+      }
+    }
   }
   return (
     transformFunction(consecutiveRests) +
-    restDispatcher(text, context, transformFunction)
+    dispatcherFunction(text, context, transformFunction)
   );
 };

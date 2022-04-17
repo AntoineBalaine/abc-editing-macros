@@ -143,6 +143,7 @@ const sortLengths = (notesArr: abcText[], pitch: abcText): sortedLengthsObj => {
       if (!/[0-9]/g.test(note)) {
         note =
           note.substring(0, note.indexOf("/")) +
+          "/" +
           (note.match(/\//g)?.length || 0) * 2;
       }
       noteValues["2divided"].push(note);
@@ -175,6 +176,13 @@ const sortLengths = (notesArr: abcText[], pitch: abcText): sortedLengthsObj => {
         buildConsolidatedValues(noteValues, pitch),
         pitch
       );
+    }
+  }
+  //fais la différence entre les notes non-marquées et les notes multipliées
+  if (noteValues["1unmarked"] > 0 && noteValues["3multiplied"] > 0) {
+    while (noteValues["1unmarked"] > 0) {
+      noteValues["1unmarked"] -= 1;
+      noteValues["3multiplied"] += 1;
     }
   }
 

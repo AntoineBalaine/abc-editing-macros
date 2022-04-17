@@ -7,6 +7,7 @@ import {
   isPitchToken,
   isRhythmToken,
   chordDispatcher,
+  restDispatcher,
 } from "./dispatcher";
 import {
   contextObj,
@@ -20,6 +21,8 @@ import {
   separateHeaderAndBody,
 } from "./fileStructureActions";
 import { chordText, consolidateRestsInChordTransform } from "./transformChords";
+import { consolidateConsecutiveNotesTransform } from "./transformRests";
+import { parseConsecutiveRests } from "./parseConsecutiveRests";
 
 export type abcText = string;
 export enum annotationCommandEnum {
@@ -106,20 +109,47 @@ export const createOrUpdateHarmonizationRoutine = (
 
 export const consolidateRestsInRoutine = (tuneBody: abcText) => {
   //split song at every bar,
-  const splitBars = tuneBody.split(/[\n|]/g);
+  const splitLines = tuneBody.split("\n");
+  const linesWithNestedBars = splitLines
+    .map((line) =>
+      line
+        .split("|")
+        .map((bar) =>
+          chordDispatcher(
+            bar,
+            { pos: 0 },
+            consolidateRestsInChordTransform as TransformFunction
+          )
+        )
+        .map((bar) =>
+          parseConsecutiveRests({
+            text: bar,
+            context: { pos: 0 },
+            transformFunction: consolidateConsecutiveNotesTransform,
+            dispatcherFunction: restDispatcher,
+          })
+        )
+        .join("|")
+    )
+    .join("\n");
+
+  return linesWithNestedBars;
+
+  /*   const splitBars = tuneBody.split(/[|]/g);
   //remove rests in chords that also have notes
   //consolidate chords that only carry rests
-  splitBars.map((bar) => {
+  const consolidatedRestsInChordsInBars = splitBars.map((bar) =>
     chordDispatcher(
       bar,
       { pos: 0 },
       consolidateRestsInChordTransform as TransformFunction
-    );
-  });
+    )
+  );
   //consolidateRests for each bar
-  /*
-
-  */
+  const consolidatedRestsInBars = consolidatedRestsInChordsInBars.map((bar) =>
+    restDispatcher(bar, { pos: 0 }, consolidateConsecutiveNotesTransform)
+  );
+  return consolidatedRestsInBars.join("|"); */
 };
 
 export const createInstrumentationRoutine = (abcText: abcText) => {

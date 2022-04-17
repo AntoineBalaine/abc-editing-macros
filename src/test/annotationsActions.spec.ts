@@ -8,10 +8,15 @@ import {
   parseUniqueTags,
   instrumentFamilies,
   findInstrumentCalls,
+  consolidateRestsInRoutine,
 } from "../annotationsActions";
 import path from "path";
 import { noteDispatcher } from "../dispatcher";
 import { convertToRestTransform } from "../transformPitches";
+import {
+  consolidatedRestsInRoutine,
+  restsInRoutineSamples,
+} from "./consolidateRestsInRoutineSamples";
 const scoreFilePath = "src/test/test_out/BachCelloSuiteDmin.abc";
 const sampleScore = fs.readFileSync(scoreFilePath, "utf-8");
 
@@ -117,6 +122,59 @@ V: str name="str"
 %`;
 
       assert.equal(createInstrumentationRoutine(text), treatedText);
+    });
+  });
+  describe("consolidates rests in routine", function () {
+    const {
+      singleBar,
+      singleBarContainingChords,
+      singleBarContainingChordsAndAnnotations,
+      singleBarContainingChordsAnnotationsSymbols,
+      singleBarContainingChordsAnnotationsSymbolsNomenclature,
+      multipleBarsContainingChordsAnnotationsSymbolsNomenclature,
+      multipleBarsContainingChordsAnnotationsSymbolsNomenclatureLineBreaks,
+    } = restsInRoutineSamples;
+    const {
+      consolidatedSingleBar,
+      consolidatedSingleBarContainingChords,
+      consolidatedSingleBarContainingChordsAndAnnotations,
+      consolidatedSingleBarContainingChordsAnnotationsSymbols,
+      consolidatedSingleBarContainingChordsAnnotationsSymbolsNomenclature,
+      consolidatedMultipleBarsContainingChordsAnnotationsSymbolsNomenclature,
+      consolidatedMultipleBarsContainingChordsAnnotationsSymbolsNomenclatureLineBreaks,
+    } = consolidatedRestsInRoutine;
+    it("consolidates consecutive rests body of tune", function () {
+      assert.equal(consolidateRestsInRoutine(singleBar), consolidatedSingleBar);
+      assert.equal(
+        consolidateRestsInRoutine(singleBarContainingChords),
+        consolidatedSingleBarContainingChords
+      );
+      assert.equal(
+        consolidateRestsInRoutine(singleBarContainingChordsAndAnnotations),
+        consolidatedSingleBarContainingChordsAndAnnotations
+      );
+      assert.equal(
+        consolidateRestsInRoutine(singleBarContainingChordsAnnotationsSymbols),
+        consolidatedSingleBarContainingChordsAnnotationsSymbols
+      );
+      assert.equal(
+        consolidateRestsInRoutine(
+          singleBarContainingChordsAnnotationsSymbolsNomenclature
+        ),
+        consolidatedSingleBarContainingChordsAnnotationsSymbolsNomenclature
+      );
+      assert.equal(
+        consolidateRestsInRoutine(
+          multipleBarsContainingChordsAnnotationsSymbolsNomenclature
+        ),
+        consolidatedMultipleBarsContainingChordsAnnotationsSymbolsNomenclature
+      );
+      assert.equal(
+        consolidateRestsInRoutine(
+          multipleBarsContainingChordsAnnotationsSymbolsNomenclatureLineBreaks
+        ),
+        consolidatedMultipleBarsContainingChordsAnnotationsSymbolsNomenclatureLineBreaks
+      );
     });
   });
 });
