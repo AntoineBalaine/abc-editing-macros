@@ -9,23 +9,43 @@ import {
 
 export const transposeOctUp = (input: string) => {
   let context = { pos: 0 };
-  return noteDispatcher(input, context, octaviateUpTransform);
+  return noteDispatcher({
+    text: input,
+    context,
+    transformFunction: octaviateUpTransform,
+  });
 };
 
 export const transposeOctDown = (input: string) => {
   let context = { pos: 0 };
-  return noteDispatcher(input, context, octaviateDownTransform);
+  return noteDispatcher({
+    text: input,
+    context,
+    transformFunction: octaviateDownTransform,
+  });
 };
 
 export const transposeHalfStepUp = (input: string) => {
   let context = { pos: 0 };
-  return noteDispatcher(input, context, transposeHalfStepUpTransform);
+  return noteDispatcher({
+    text: input,
+    context,
+    transformFunction: transposeHalfStepUpTransform,
+  });
 };
 export const transposeHalfStepDown = (input: string) => {
   let context = { pos: 0 };
-  return noteDispatcher(input, context, transposeHalfStepDownTransform);
+  return noteDispatcher({
+    text: input,
+    context,
+    transformFunction: transposeHalfStepDownTransform,
+  });
 };
 export const turnNotesToRests = (input: string) => {
   let context = { pos: 0 };
-  return noteDispatcher(input, context, convertToRestTransform);
+  return noteDispatcher({
+    text: input,
+    context,
+    transformFunction: convertToRestTransform,
+  });
 };

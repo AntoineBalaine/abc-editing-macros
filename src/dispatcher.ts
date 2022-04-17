@@ -13,6 +13,7 @@ import {
   jumpToEndOfSymbol,
   jumpToEndOfAnnotation,
   dispatcherProps,
+  ParseFunction as ParseFunction,
 } from "./parseNomenclature";
 import { jumpToEndOfNote, parseNote } from "./parseNotes";
 import { parseChord } from "./parseChords";
@@ -43,15 +44,16 @@ export type noteDispatcherProps = {
   text: abcText;
   context: contextObj;
   transformFunction: TransformFunction;
+  parseFunction?: ParseFunction;
   tag?: annotationStyle;
 };
 
-export type dispatcherFunction = (
-  text: abcText,
-  context: contextObj,
-  transformFunction: TransformFunction,
-  tag?: annotationStyle
-) => string;
+export type dispatcherFunction = ({
+  text,
+  context,
+  transformFunction,
+  tag,
+}: noteDispatcherProps) => string;
 
 export const findTokenType = (text: abcText, context: contextObj) => {
   const token = text.charAt(context.pos);
@@ -73,12 +75,12 @@ export const findTokenType = (text: abcText, context: contextObj) => {
   else return "end";
 };
 
-export const noteDispatcher: dispatcherFunction = (
+export const noteDispatcher: dispatcherFunction = ({
   text,
   context,
   transformFunction,
-  tag
-) => {
+  tag,
+}: noteDispatcherProps) => {
   const contextChar = text.charAt(context.pos);
   const tokenType = findTokenType(text, context);
   const propsForActionFn = {
@@ -109,17 +111,17 @@ export const noteDispatcher: dispatcherFunction = (
     default: {
       context.pos += 1;
       return (
-        contextChar + noteDispatcher(text, context, transformFunction, tag)
+        contextChar + noteDispatcher({ text, context, transformFunction, tag })
       );
     }
   }
 };
 
-export const chordDispatcher: dispatcherFunction = (
+export const chordDispatcher: dispatcherFunction = ({
   text,
   context,
-  transformFunction
-) => {
+  transformFunction,
+}) => {
   const contextChar = text.charAt(context.pos);
   const tokenType = findTokenType(text, context);
   const propsForActionFn = {
@@ -130,7 +132,7 @@ export const chordDispatcher: dispatcherFunction = (
   };
   switch (tokenType) {
     case "chord":
-      return parseChord(text, context, transformFunction);
+      return parseChord({ text, context, transformFunction });
     case "annotation":
       return jumpToEndOfAnnotation(propsForActionFn);
     case "symbol":
@@ -145,16 +147,19 @@ export const chordDispatcher: dispatcherFunction = (
       return "";
     default: {
       context.pos += 1;
-      return contextChar + chordDispatcher(text, context, transformFunction);
+      return (
+        contextChar + chordDispatcher({ text, context, transformFunction })
+      );
     }
   }
 };
 
-export const restDispatcher: dispatcherFunction = (
+export const restDispatcher: dispatcherFunction = ({
   text,
   context,
-  transformFunction
-): string => {
+  transformFunction,
+  parseFunction,
+}): string => {
   const contextChar = text.charAt(context.pos);
   const tokenType = findTokenType(text, context);
   const propsForActionFn = {
@@ -162,10 +167,13 @@ export const restDispatcher: dispatcherFunction = (
     context,
     transformFunction,
     dispatcherFunction: restDispatcher,
+    parseFunction,
   };
   switch (tokenType) {
     case "rest": {
-      return transformFunction(contextChar);
+      return parseFunction
+        ? parseFunction(propsForActionFn)
+        : transformFunction(contextChar);
     }
     case "annotation":
       return jumpToEndOfAnnotation(propsForActionFn);
@@ -179,10 +187,10 @@ export const restDispatcher: dispatcherFunction = (
       return "";
     case "articulation":
       context.pos += 1;
-      return restDispatcher(text, context, transformFunction);
+      return restDispatcher(propsForActionFn);
     default: {
       context.pos += 1;
-      return contextChar + restDispatcher(text, context, transformFunction);
+      return contextChar + restDispatcher(propsForActionFn);
     }
   }
 };

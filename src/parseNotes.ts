@@ -46,7 +46,7 @@ export const parseNote = (
   }
   return (
     transformFunction(note) +
-    noteDispatcher(text, context, transformFunction, tag)
+    noteDispatcher({ text, context, transformFunction, tag })
   );
 };
 
@@ -70,5 +70,5 @@ export const jumpToEndOfNote = ({
       note += text.charAt(context.pos);
     } else break;
   }
-  return note + dispatcherFunction(text, context, transformFunction);
+  return note + dispatcherFunction({ text, context, transformFunction });
 };

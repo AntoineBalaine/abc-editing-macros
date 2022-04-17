@@ -7,11 +7,11 @@ export type chordText = `[${abcText}]`;
 const orderOfNotes = "cdefgab".split("");
 export const reorderChordTransform = (chord: chordText): string => {
   //split ${chord} into a json array
-  const strNotes = noteDispatcher(
-    chord,
-    { pos: 0 },
-    (note: abcText) => `"${note}",`
-  );
+  const strNotes = noteDispatcher({
+    text: chord,
+    context: { pos: 0 },
+    transformFunction: (note: abcText) => `"${note}",`,
+  });
 
   //here, need to remove the trailing comma in array for the JSON to parse correctly
   const chordNotes = JSON.parse(

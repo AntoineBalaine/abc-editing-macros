@@ -82,23 +82,39 @@ describe("Rhythms", function () {
     //todo, account for broken rhythms
     it("duplicates note's length", function () {
       assert.equal(
-        noteDispatcher("a/2", { pos: 0 }, duplicateLengthTransform),
+        noteDispatcher({
+          text: "a/2",
+          context: { pos: 0 },
+          transformFunction: duplicateLengthTransform,
+        }),
         "a"
       );
     });
     it("divides note's length", function () {
       assert.equal(
-        noteDispatcher("a", { pos: 0 }, divideLengthTransform),
+        noteDispatcher({
+          text: "a",
+          context: { pos: 0 },
+          transformFunction: divideLengthTransform,
+        }),
         "a/"
       );
     });
     it("duplicates and divides broken rhythms", function () {
       assert.equal(
-        noteDispatcher("a/2>a/2", { pos: 0 }, duplicateLengthTransform),
+        noteDispatcher({
+          text: "a/2>a/2",
+          context: { pos: 0 },
+          transformFunction: duplicateLengthTransform,
+        }),
         "a>a"
       );
       assert.equal(
-        noteDispatcher("a>a", { pos: 0 }, divideLengthTransform),
+        noteDispatcher({
+          text: "a>a",
+          context: { pos: 0 },
+          transformFunction: divideLengthTransform,
+        }),
         "a/>a/"
       );
     });

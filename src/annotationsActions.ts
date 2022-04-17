@@ -83,12 +83,12 @@ export const findInstrumentCalls = (
   );
   const parsedFamilies = uniqueFamilyTags.map((tag) => {
     return {
-      [tag]: noteDispatcher(
+      [tag]: noteDispatcher({
         text,
-        { pos: 0 },
-        convertToRestTransform,
-        tag as annotationStyle
-      ),
+        context: { pos: 0 },
+        transformFunction: convertToRestTransform,
+        tag: tag as annotationStyle,
+      }),
     };
   });
   return parsedFamilies as InstrumentCalls[];
@@ -115,11 +115,12 @@ export const consolidateRestsInRoutine = (tuneBody: abcText) => {
       line
         .split("|")
         .map((bar) =>
-          chordDispatcher(
-            bar,
-            { pos: 0 },
-            consolidateRestsInChordTransform as TransformFunction
-          )
+          chordDispatcher({
+            text: bar,
+            context: { pos: 0 },
+            transformFunction:
+              consolidateRestsInChordTransform as TransformFunction,
+          })
         )
         .map((bar) =>
           parseConsecutiveRests({

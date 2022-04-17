@@ -26,55 +26,59 @@ describe("Harmonise", function () {
   describe("using chordDispatcher", function () {
     it("Re-orders chords from lowest to highest notes", function () {
       assert.equal(
-        chordDispatcher(
-          "[acbe]" as chordText,
-          { pos: 0 },
-          reorderChordTransform as TransformFunction
-        ),
+        chordDispatcher({
+          text: "[acbe]" as chordText,
+          context: { pos: 0 },
+          transformFunction: reorderChordTransform as TransformFunction,
+        }),
         "[ceab]"
       );
       assert.equal(
-        chordDispatcher(
-          "[AcBe]" as chordText,
-          { pos: 0 },
-          reorderChordTransform as TransformFunction
-        ),
+        chordDispatcher({
+          text: "[AcBe]" as chordText,
+          context: { pos: 0 },
+          transformFunction: reorderChordTransform as TransformFunction,
+        }),
         "[ABce]"
       );
       assert.equal(
-        chordDispatcher(
-          "[fA,c'G]" as chordText,
-          { pos: 0 },
-          reorderChordTransform as TransformFunction
-        ),
+        chordDispatcher({
+          text: "[fA,c'G]" as chordText,
+          context: { pos: 0 },
+          transformFunction: reorderChordTransform as TransformFunction,
+        }),
         "[A,Gfc']"
       );
     });
 
     it("consolidates chord's multiple rests into a single value", function () {
-      chordDispatcher(
-        "[A,F,,Bc'zd'']/2" as chordText,
-        { pos: 0 },
-        consolidateRestsInChordTransform as TransformFunction
-      ),
+      chordDispatcher({
+        text: "[A,F,,Bc'zd'']/2" as chordText,
+        context: { pos: 0 },
+        transformFunction:
+          consolidateRestsInChordTransform as TransformFunction,
+      }),
         "[abcd]/2";
-      chordDispatcher(
-        "[zzz]/2" as chordText,
-        { pos: 0 },
-        consolidateRestsInChordTransform as TransformFunction
-      ),
+      chordDispatcher({
+        text: "[zzz]/2" as chordText,
+        context: { pos: 0 },
+        transformFunction:
+          consolidateRestsInChordTransform as TransformFunction,
+      }),
         "z/2";
-      chordDispatcher(
-        "[zaz]/2" as chordText,
-        { pos: 0 },
-        consolidateRestsInChordTransform as TransformFunction
-      ),
+      chordDispatcher({
+        text: "[zaz]/2" as chordText,
+        context: { pos: 0 },
+        transformFunction:
+          consolidateRestsInChordTransform as TransformFunction,
+      }),
         "a/2";
-      chordDispatcher(
-        "[zazb]/2" as chordText,
-        { pos: 0 },
-        consolidateRestsInChordTransform as TransformFunction
-      ),
+      chordDispatcher({
+        text: "[zazb]/2" as chordText,
+        context: { pos: 0 },
+        transformFunction:
+          consolidateRestsInChordTransform as TransformFunction,
+      }),
         "[ab]/2";
     });
   });

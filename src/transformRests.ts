@@ -31,11 +31,11 @@ const groupNotesByLength = (res: any[], curr: abcText) => {
 export const consolidateConsecutiveNotesTransform = (
   text: abcText
 ): abcText => {
-  const notesJson = noteDispatcher(
+  const notesJson = noteDispatcher({
     text,
-    { pos: 0 },
-    (note: abcText) => `"${note}",`
-  );
+    context: { pos: 0 },
+    transformFunction: (note: abcText) => `"${note}",`,
+  });
 
   const notesArr = JSON.parse(
     `[${notesJson.substring(0, notesJson.length - 1)}]`

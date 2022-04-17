@@ -60,24 +60,24 @@ describe("Arrange", function () {
     it("strips annotations of any instrument references", function () {
       let annotation = '"str soli"A,B,CDEFG"/str"';
       assert.equal(
-        noteDispatcher(
-          annotation,
-          { pos: 0 },
-          () => "",
-          instrumentFamilies.strings
-        ),
+        noteDispatcher({
+          text: annotation,
+          context: { pos: 0 },
+          transformFunction: () => "",
+          tag: instrumentFamilies.strings,
+        }),
         '"soli"A,B,CDEFG'
       );
     });
     it("turns all parts outside of instrument tags into rests", function () {
       let annotation = 'AbcD,E,"str soli"A,B,CDEFG"/str"D^FAc';
       assert.equal(
-        noteDispatcher(
-          annotation,
-          { pos: 0 },
-          convertToRestTransform,
-          instrumentFamilies.strings
-        ),
+        noteDispatcher({
+          text: annotation,
+          context: { pos: 0 },
+          transformFunction: convertToRestTransform,
+          tag: instrumentFamilies.strings,
+        }),
         'zzzzz"soli"A,B,CDEFGzzzz'
       );
     });

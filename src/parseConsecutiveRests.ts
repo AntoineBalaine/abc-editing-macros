@@ -1,4 +1,9 @@
-import { findTokenType, isRhythmToken, restDispatcher } from "./dispatcher";
+import {
+  dispatcherFunction,
+  findTokenType,
+  isRhythmToken,
+  restDispatcher,
+} from "./dispatcher";
 import { dispatcherProps } from "./parseNomenclature";
 import { contextObj, TransformFunction } from "./transformPitches";
 import { consolidateConsecutiveNotesTransform } from "./transformRests";
@@ -11,7 +16,6 @@ export const parseConsecutiveRests = ({
 }: dispatcherProps): string => {
   // lire les silences consécutifs en ignorant les articulations,
   //mais sans ignorer les symboles, les annotations, les nomenclatures et les notes
-  // consolidateRests()
   let consecutiveRests = "";
   while (context.pos < text.length) {
     let curChar = text.charAt(context.pos);
@@ -39,6 +43,11 @@ export const parseConsecutiveRests = ({
   }
   return (
     transformFunction(consecutiveRests) +
-    dispatcherFunction(text, context, transformFunction)
+    dispatcherFunction({
+      text,
+      context,
+      transformFunction,
+      parseFunction: parseConsecutiveRests,
+    })
   );
 };

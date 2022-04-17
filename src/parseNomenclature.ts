@@ -10,8 +10,11 @@ export type dispatcherProps = {
   context: contextObj;
   transformFunction: TransformFunction;
   dispatcherFunction: dispatcherFunction;
+  parseFunction?: ParseFunction;
   tag?: annotationStyle;
 };
+
+export type ParseFunction = ({}: dispatcherProps) => string;
 
 export const isNomenclatureTag = (text: abcText, context: contextObj) => {
   const subTag = text.substring(context.pos, text.indexOf("]", context.pos));
@@ -25,13 +28,15 @@ export const jumpToEndOfNomenclatureTag = ({
   context,
   transformFunction,
   dispatcherFunction,
+  parseFunction,
   tag,
 }: dispatcherProps) => {
   const indexOfTagEnd = text.indexOf("]", context.pos + 1);
   const nomenclatureTag = text.substring(context.pos, indexOfTagEnd + 1);
   context.pos = indexOfTagEnd + 1;
   return (
-    nomenclatureTag + dispatcherFunction(text, context, transformFunction, tag)
+    nomenclatureTag +
+    dispatcherFunction({ text, context, transformFunction, parseFunction, tag })
   );
 };
 
@@ -40,6 +45,7 @@ export const jumpToEndOfNomenclatureLine = ({
   context,
   transformFunction,
   dispatcherFunction,
+  parseFunction,
   tag,
 }: dispatcherProps) => {
   const nextLineBreak = text.indexOf("\n", context.pos + 1);
@@ -49,7 +55,8 @@ export const jumpToEndOfNomenclatureLine = ({
   );
   context.pos = nextLineBreak < 0 ? text.length : nextLineBreak;
   return (
-    nomenclature + dispatcherFunction(text, context, transformFunction, tag)
+    nomenclature +
+    dispatcherFunction({ text, context, transformFunction, parseFunction, tag })
   );
 };
 
@@ -58,12 +65,16 @@ export const jumpToEndOfSymbol = ({
   context,
   transformFunction,
   dispatcherFunction,
+  parseFunction,
   tag,
 }: dispatcherProps) => {
   const endOfSymbolIndex = text.indexOf("!", context.pos + 1);
   const symbol = text.substring(context.pos, endOfSymbolIndex + 1);
   context.pos = context.pos + symbol.length;
-  return symbol + dispatcherFunction(text, context, transformFunction, tag);
+  return (
+    symbol +
+    dispatcherFunction({ text, context, transformFunction, parseFunction, tag })
+  );
 };
 
 export const jumpToEndOfAnnotation = ({
@@ -71,9 +82,13 @@ export const jumpToEndOfAnnotation = ({
   context,
   transformFunction,
   dispatcherFunction,
+  parseFunction,
 }: dispatcherProps) => {
   const endOfannotationIndex = text.indexOf('"', context.pos + 1);
   const annotation = text.substring(context.pos, endOfannotationIndex + 1);
   context.pos = context.pos + annotation.length;
-  return annotation + dispatcherFunction(text, context, transformFunction);
+  return (
+    annotation +
+    dispatcherFunction({ text, context, transformFunction, parseFunction })
+  );
 };

@@ -232,25 +232,39 @@ describe("Transpose and rest", function () {
     });
     it("1 step up", function () {
       assert.equal(
-        noteDispatcher("C,E,_G,B,,_e", { pos: 0 }, transposeStepUpTransform),
+        noteDispatcher({
+          text: "C,E,_G,B,,_e",
+          context: { pos: 0 },
+          transformFunction: transposeStepUpTransform,
+        }),
         "D,^F,^G,^C,f"
       );
       assert.equal(
-        noteDispatcher("C,E,G,B,,e", { pos: 0 }, (note: string) =>
-          transposeStepUpTransform(note, "[K:A]")
-        ),
+        noteDispatcher({
+          text: "C,E,G,B,,e",
+          context: { pos: 0 },
+          transformFunction: (note: string) =>
+            transposeStepUpTransform(note, "[K:A]"),
+        }),
         "D,^F,A,^C,^f"
       );
     });
     it("1 step down", function () {
       assert.equal(
-        noteDispatcher("C,E,^F,B,,_e", { pos: 0 }, transposeStepDownTransform),
+        noteDispatcher({
+          text: "C,E,^F,B,,_e",
+          context: { pos: 0 },
+          transformFunction: transposeStepDownTransform,
+        }),
         "_B,D,E,A,_d"
       );
       assert.equal(
-        noteDispatcher("^C,E,G,B,,e", { pos: 0 }, (note: string) =>
-          transposeStepDownTransform(note, "[K:A]")
-        ),
+        noteDispatcher({
+          text: "^C,E,G,B,,e",
+          context: { pos: 0 },
+          transformFunction: (note: string) =>
+            transposeStepDownTransform(note, "[K:A]"),
+        }),
         "B,D,^E,A,d"
       );
     });
@@ -318,39 +332,39 @@ describe("Nomenclature", function () {
   describe("using dispatcher function", function () {
     it("recognizes line comments", function () {
       assert.equal(
-        noteDispatcher(
-          nomenclature as abcText,
-          { pos: 0 },
-          () => "",
-          "" as annotationStyle
-        ),
+        noteDispatcher({
+          text: nomenclature as abcText,
+          context: { pos: 0 },
+          transformFunction: () => "",
+          tag: "" as annotationStyle,
+        }),
         nomenclature
       );
       assert.equal(
-        noteDispatcher(
-          nomenclature2 as abcText,
-          { pos: 0 },
-          () => "",
-          "" as annotationStyle
-        ),
+        noteDispatcher({
+          text: nomenclature2 as abcText,
+          context: { pos: 0 },
+          transformFunction: () => "",
+          tag: "" as annotationStyle,
+        }),
         nomenclature2
       );
       assert.equal(
-        noteDispatcher(
-          nomenclature3 as abcText,
-          { pos: 0 },
-          () => "",
-          "" as annotationStyle
-        ),
+        noteDispatcher({
+          text: nomenclature3 as abcText,
+          context: { pos: 0 },
+          transformFunction: () => "",
+          tag: "" as annotationStyle,
+        }),
         nomenclature3
       );
       assert.notEqual(
-        noteDispatcher(
-          notNomenclature as abcText,
-          { pos: 0 },
-          () => "",
-          "" as annotationStyle
-        ),
+        noteDispatcher({
+          text: notNomenclature as abcText,
+          context: { pos: 0 },
+          transformFunction: () => "",
+          tag: "" as annotationStyle,
+        }),
         notNomenclature
       );
     });
@@ -393,26 +407,38 @@ describe("Nomenclature", function () {
     it("leave symbols untouched", function () {
       const symbol = "abc!fermata!abc";
       assert.equal(
-        noteDispatcher(
-          symbol as abcText,
-          { pos: 0 },
-          (note: string) => note,
-          "" as annotationStyle
-        ),
+        noteDispatcher({
+          text: symbol as abcText,
+          context: { pos: 0 },
+          transformFunction: (note: string) => note,
+          tag: "" as annotationStyle,
+        }),
         symbol
       );
     });
     it("dispatcher: differenciates chord from nomenclature brackets", function () {
       assert.equal(
-        noteDispatcher("[K: F minor]", { pos: 0 }, (n) => ""),
+        noteDispatcher({
+          text: "[K: F minor]",
+          context: { pos: 0 },
+          transformFunction: (n) => "",
+        }),
         "[K: F minor]"
       );
       assert.equal(
-        noteDispatcher("[abcde]", { pos: 0 }, (n) => ""),
+        noteDispatcher({
+          text: "[abcde]",
+          context: { pos: 0 },
+          transformFunction: (n) => "",
+        }),
         "[]"
       );
       assert.equal(
-        noteDispatcher("[abcde][K: F minor]", { pos: 0 }, (n) => ""),
+        noteDispatcher({
+          text: "[abcde][K: F minor]",
+          context: { pos: 0 },
+          transformFunction: (n) => "",
+        }),
         "[][K: F minor]"
       );
     });

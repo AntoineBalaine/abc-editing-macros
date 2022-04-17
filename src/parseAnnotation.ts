@@ -25,7 +25,7 @@ export function parseAnnotation(
     ).replace(/\"(\s*)?\"/g, "");
     context.pos = context.pos + sections[0].length;
     return (
-      purgedSections + noteDispatcher(text, context, transformFunction, tag)
+      purgedSections + noteDispatcher({ text, context, transformFunction, tag })
     );
   } else {
     for (let i = 0; i < sections.length; i++) {
@@ -59,7 +59,12 @@ export function parseAnnotation(
             ),
           ];
         } else
-          return noteDispatcher(subSection, { pos: 0 }, transformFunction, tag);
+          return noteDispatcher({
+            text: subSection,
+            context: { pos: 0 },
+            transformFunction,
+            tag,
+          });
       })
       .flat()
       .join("")

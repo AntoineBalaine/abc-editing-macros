@@ -1,10 +1,10 @@
 import { chordDispatcher, dispatcherFunction } from "./dispatcher";
 
-export const parseChord: dispatcherFunction = (
+export const parseChord: dispatcherFunction = ({
   text,
   context,
-  transformFunction
-) => {
+  transformFunction,
+}) => {
   //find start and end of chord
   //pass chord to transformFunction and return rest
   let chord = text.charAt(context.pos);
@@ -17,6 +17,7 @@ export const parseChord: dispatcherFunction = (
     }
   }
   return (
-    transformFunction(chord) + chordDispatcher(text, context, transformFunction)
+    transformFunction(chord) +
+    chordDispatcher({ text, context, transformFunction })
   );
 };
