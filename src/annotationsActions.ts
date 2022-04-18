@@ -123,11 +123,17 @@ export const consolidateRestsInRoutine = (tuneBody: abcText) => {
           })
         )
         .map((bar) =>
-          parseConsecutiveRests({
+          /*           parseConsecutiveRests({
             text: bar,
             context: { pos: 0 },
             transformFunction: consolidateConsecutiveNotesTransform,
             dispatcherFunction: restDispatcher,
+          }) */
+          restDispatcher({
+            text: bar,
+            context: { pos: 0 },
+            transformFunction: consolidateConsecutiveNotesTransform,
+            parseFunction: parseConsecutiveRests,
           })
         )
         .join("|")

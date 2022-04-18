@@ -60,6 +60,7 @@ export const findTokenType = (text: abcText, context: contextObj) => {
   if (isPitchToken(token)) return "note";
   if (isRest(token)) return "rest";
   if (isArticulation(text, context)) return "articulation";
+  if (token === " ") return "space";
   if (token === "|") return "barLine";
   if (token === '"') return "annotation";
   if (token === "!") return "symbol";

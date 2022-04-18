@@ -7,8 +7,8 @@ const singleBarContainingChordsAnnotationsSymbols =
 const singleBarContainingChordsAnnotationsSymbolsNomenclature =
   '[K:F min]zzzz "soli"(zzz)z !fermata!z/z2z/z [zzz]12';
 const multipleBarsContainingChordsAnnotationsSymbolsNomenclature =
-  '[K:F min]zzzz "soli"(zzz)z !fermata!z/z2z/z [zzz]12| [zzzz]4 (zzz)z !fermata!z/z2z/ [zzz]12';
-const multipleBarsContainingChordsAnnotationsSymbolsNomenclatureLineBreaks = `[K:F min]zzzz "soli"(zzz)z !fermata!z/z2z/z [zzz]12| [zzzz]4 (zzz)z !fermata!z/z2z/ [zzz]12 |
+  '[K:F min]zzzz "soli"(zzz)z !fermata!z/z2z/z [zzz]12| [zzzz]4 (zzz)z !fermata!z/z2z/z [zzz]12';
+const multipleBarsContainingChordsAnnotationsSymbolsNomenclatureLineBreaks = `[K:F min]zzzz "soli"(zzz)z !fermata!z/z2z/z [zzz]12| [zzzz]4 (zzz)z !fermata!z/z2z/z [zzz]12 |
 zz(zz) z4 [zz]2 zz | zzzz !fermata! zzzz |`;
 
 export const restsInRoutineSamples = {
