@@ -1,4 +1,4 @@
-import { contextObj, TransformFunction } from "./transformPitches";
+import { contextObj } from "./transformPitches";
 export declare type abcText = string;
 export declare enum annotationCommandEnum {
     createHarmonisationFile = "harmonisation",
@@ -26,7 +26,8 @@ export declare type InstrumentCalls = {
 };
 export declare const findInstrumentCalls: (text: abcText, context: contextObj) => InstrumentCalls[];
 export declare const createOrUpdateHarmonizationRoutine: (abcText: string, annotationCommand: annotationCommandEnum, scoreFilePath: string) => void;
+export declare const consolidateRestsInRoutine: (tuneBody: abcText) => string;
 export declare const createInstrumentationRoutine: (abcText: string) => string;
 export declare const parseUniqueTags: (text: abcText) => string[];
-export declare function parseAnnotation(text: string, context: contextObj, tag: annotationStyle, transformFunction: TransformFunction): string;
+export declare const removeInstrumentTagsFromAnnotation: (annotationText: string) => string;
 export {};
