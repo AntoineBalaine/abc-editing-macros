@@ -10,6 +10,8 @@ const multipleBarsContainingChordsAnnotationsSymbolsNomenclature =
   '[K:F min]zzzz "soli"(zzz)z !fermata!z/z2z/z [zzz]12| [zzzz]4 (zzz)z !fermata!z/z2z/z [zzz]12';
 const multipleBarsContainingChordsAnnotationsSymbolsNomenclatureLineBreaks = `[K:F min]zzzz "soli"(zzz)z !fermata!z/z2z/z [zzz]12| [zzzz]4 (zzz)z !fermata!z/z2z/z [zzz]12 |
 zz(zz) z4 [zz]2 zz | zzzz !fermata! zzzz |`;
+const multipleBarsContainingChordsAnnotationsSymbolsNomenclatureLineBreaksAndNotes = `[K:F min]zzzz "soli"(zzz)z !fermata!z/z2z/z [zzz]12| [zzzz]4 (zzz)z !fermata!z/z2z/z [zzz]12 |
+zz(zz) z4 [zz]2 zz | zzzz !fermata! zzzz | (zzzz) "str"(GBAC DFED)"/str" zzzz`;
 
 export const restsInRoutineSamples = {
   singleBar,
@@ -19,6 +21,7 @@ export const restsInRoutineSamples = {
   singleBarContainingChordsAnnotationsSymbolsNomenclature,
   multipleBarsContainingChordsAnnotationsSymbolsNomenclature,
   multipleBarsContainingChordsAnnotationsSymbolsNomenclatureLineBreaks,
+  multipleBarsContainingChordsAnnotationsSymbolsNomenclatureLineBreaksAndNotes,
 };
 const consolidatedSingleBar = "z12";
 const consolidatedSingleBarContainingChords = "z24";
@@ -31,6 +34,8 @@ const consolidatedMultipleBarsContainingChordsAnnotationsSymbolsNomenclature =
   '[K:F min]z4 "soli"z4 !fermata!z16| z8 !fermata!z16';
 const consolidatedMultipleBarsContainingChordsAnnotationsSymbolsNomenclatureLineBreaks = `[K:F min]z4 "soli"z4 !fermata!z16| z8 !fermata!z16 |
 z12 | z4 !fermata! z4 |`;
+const consolidatedMultipleBarsContainingChordsAnnotationsSymbolsNomenclatureLineBreaksAndNotes = `[K:F min]z4 "soli"z4 !fermata!z16| z8 !fermata!z16 |
+z12 | z4 !fermata! z4 | z4 "str"(GBAC DFED)"/str" z4`;
 
 export const consolidatedRestsInRoutine = {
   consolidatedSingleBar,
@@ -40,4 +45,5 @@ export const consolidatedRestsInRoutine = {
   consolidatedSingleBarContainingChordsAnnotationsSymbolsNomenclature,
   consolidatedMultipleBarsContainingChordsAnnotationsSymbolsNomenclature,
   consolidatedMultipleBarsContainingChordsAnnotationsSymbolsNomenclatureLineBreaks,
+  consolidatedMultipleBarsContainingChordsAnnotationsSymbolsNomenclatureLineBreaksAndNotes,
 };

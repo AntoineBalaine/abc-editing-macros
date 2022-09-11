@@ -1,13 +1,12 @@
 import { abcText, annotationStyle } from "./annotationsActions";
 import {
-  isLetter,
-  isOctaveToken,
   noteDispatcher,
   dispatcherFunction,
-  isRhythmToken,
+
 } from "./dispatcher";
 import { dispatcherProps } from "./parseNomenclature";
 import { contextObj, TransformFunction } from "./transformPitches";
+import {isLetter, isOctaveToken, isRhythmToken} from "./dispatcherHelpers";
 
 export const parseRhythmToken = (text: abcText, context: contextObj) => {
   const matches = text

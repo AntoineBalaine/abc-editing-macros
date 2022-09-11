@@ -1,44 +1,25 @@
-import {
-  abcText,
-  annotationCommandEnum,
-  annotationStyle,
-} from "./annotationsActions";
+import { abcText, annotationStyle } from "./annotationsActions";
 import { parseAnnotation } from "./parseAnnotation";
 import { contextObj, TransformFunction } from "./transformPitches";
 import {
   isNomenclatureLine,
-  jumpToEndOfNomenclatureLine,
   isNomenclatureTag,
+  jumpToEndOfAnnotation,
+  jumpToEndOfNomenclatureLine,
   jumpToEndOfNomenclatureTag,
   jumpToEndOfSymbol,
-  jumpToEndOfAnnotation,
-  dispatcherProps,
   ParseFunction as ParseFunction,
 } from "./parseNomenclature";
 import { jumpToEndOfNote, parseNote } from "./parseNotes";
 import { parseChord } from "./parseChords";
-import { parseConsecutiveRests } from "./parseConsecutiveRests";
-
-export const NOTES_LOWERCASE = ["a", "b", "c", "d", "e", "f", "g", "a"];
-export const NOTES_UPPERCASE = ["A", "B", "C", "D", "E", "F", "G", "A"];
-
-export const isLetter = (char: string) => !!char.match(/[a-gz]/i);
-export const isNoteToken = (char: string) => /[a-g,']/i.test(char);
-export const isOctaveToken = (char: string) => /[,']/i.test(char);
-export const isAlterationToken = (char: string) => !!char.match(/[\^=_]/i);
-export const isPitchToken = (char: string) => /[a-g,'\^=_]/i.test(char);
-export const isRhythmToken = (text: abcText): boolean => /[0-9]|\//g.test(text);
-export const isRest = (char: abcText): boolean => /[z]/i.test(char);
-export const isTie = (char: abcText): boolean => /(\([^0-9])|\)/i.test(char);
-export const isDecoration = (char: abcText): boolean =>
-  /[.~HLMOPSTuv]/i.test(char);
-export const isArticulation = (text: abcText, context: contextObj) => {
-  const contextChar = text.charAt(context.pos);
-  const sample = text.charAt(context.pos + 1)
-    ? text.substring(context.pos, context.pos + 2)
-    : contextChar;
-  return isTie(sample) || isDecoration(contextChar);
-};
+import {
+  consolidateRestsInTieAndJumpToEndOfTie,
+  isArticulation,
+  isOpeningTie,
+  isPitchToken,
+  isRest,
+  tieContainsNotes,
+} from "./dispatcherHelpers";
 
 export type noteDispatcherProps = {
   text: abcText;
@@ -59,6 +40,7 @@ export const findTokenType = (text: abcText, context: contextObj) => {
   const token = text.charAt(context.pos);
   if (isPitchToken(token)) return "note";
   if (isRest(token)) return "rest";
+  if (isOpeningTie(token + text.charAt(context.pos + 1))) return "openingTie";
   if (isArticulation(text, context)) return "articulation";
   if (token === " ") return "space";
   if (token === "|") return "barLine";
@@ -186,6 +168,15 @@ export const restDispatcher: dispatcherFunction = ({
       return jumpToEndOfNomenclatureTag(propsForActionFn);
     case "end":
       return "";
+    case "openingTie": {
+      if (tieContainsNotes({ ...propsForActionFn, context: { ...context } })) {
+        return consolidateRestsInTieAndJumpToEndOfTie(propsForActionFn);
+      } else {
+        return parseFunction
+          ? parseFunction(propsForActionFn)
+          : transformFunction(contextChar);
+      }
+    }
     case "articulation":
       context.pos += 1;
       return restDispatcher(propsForActionFn);

@@ -1,28 +1,18 @@
-import { promises as fs } from "fs";
 import path from "path";
-import {
-  noteDispatcher,
-  isAlterationToken,
-  isLetter,
-  isPitchToken,
-  isRhythmToken,
-  chordDispatcher,
-  restDispatcher,
-} from "./dispatcher";
-import {
-  contextObj,
-  convertToRestTransform,
-  TransformFunction,
-} from "./transformPitches";
-import { turnNotesToRests } from "./test/testTransposeFunctions";
+import { chordDispatcher, noteDispatcher, restDispatcher } from "./dispatcher";
 import {
   addNomenclatureToHeader,
   buildBodyFromInstruments,
   separateHeaderAndBody,
 } from "./fileStructureActions";
-import { chordText, consolidateRestsInChordTransform } from "./transformChords";
-import { consolidateConsecutiveNotesTransform } from "./transformRests";
 import { parseConsecutiveRests } from "./parseConsecutiveRests";
+import { consolidateRestsInChordTransform } from "./transformChords";
+import {
+  contextObj,
+  convertToRestTransform,
+  TransformFunction,
+} from "./transformPitches";
+import { consolidateConsecutiveNotesTransform } from "./transformRests";
 
 export type abcText = string;
 export enum annotationCommandEnum {
@@ -49,25 +39,6 @@ export enum instrumentFamilies {
   strings = "str",
   pluckStrings = "plk",
 }
-
-/*
-    if a tag is a harmony enum, 
-        copy the contents to the harmony file
-        filenaming convention: songTitle.harmony.abc
-    if a tag is an instrumentFamily type, 
-        copy the contents to instrumentFamilies file || copy the instrument tags to the harmony file
-test: expect(fs.existsSync('file.txt')).to.be.true
-*/
-
-/*
-  dispatcherFunction: 
-  parse through contents, 
- */
-type AnnotateDispatcherFunction = (
-  text: abcText,
-  context: contextObj,
-  tag: annotationStyle
-) => string;
 
 export type InstrumentCalls = { [key in instrumentFamilies]: abcText };
 export const findInstrumentCalls = (
@@ -170,6 +141,7 @@ export const createInstrumentationRoutine = (abcText: abcText) => {
     parsedInstrumentFamilies.map((instrument) => Object.keys(instrument)[0])
   );
   headerAndBody.bodyText = buildBodyFromInstruments(parsedInstrumentFamilies);
+
   return Object.values(headerAndBody).join("\n");
 };
 

@@ -1,4 +1,4 @@
-import { noteDispatcher, isNoteToken } from "../dispatcher";
+import { noteDispatcher} from "../dispatcher";
 import {
   convertToEnharmoniaTransform,
   convertToRestTransform,
@@ -30,6 +30,7 @@ import {
   findInstrumentCalls,
 } from "../annotationsActions";
 import { expect } from "chai";
+import {isNoteToken} from "../dispatcherHelpers";
 
 const fullTextLine =
   "(E,A,^CE) (GFED ^C=B,A,G,) | (F,A,DF) ADFA dBcA | G,DGA B(G^FG) _eGDg | [A,G^C]12 | [A,Fd]12 | [A,Ed]12 | [A,E^c]12 | [D,A,Fd]12 ||";

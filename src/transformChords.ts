@@ -1,6 +1,7 @@
 import { abcText } from "./annotationsActions";
-import { noteDispatcher, isPitchToken, isRhythmToken } from "./dispatcher";
+import { noteDispatcher} from "./dispatcher";
 import { isLowerCase } from "./transformPitches";
+import {isPitchToken, isRhythmToken} from "./dispatcherHelpers";
 
 export type chordText = `[${abcText}]`;
 
