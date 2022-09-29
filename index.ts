@@ -20,6 +20,7 @@ import {
   duplicateLengthTransform,
 } from "./src/transformRests";
 
+import { formatScore, formatLineSystem } from "./src/formatter";
 export {
   consolidateConsecutiveNotesTransform,
   consolidateRestsInRoutine,
@@ -36,4 +37,6 @@ export {
   transposeHalfStepUpTransform,
   transposeStepDownTransform,
   transposeStepUpTransform,
+  formatScore,
+  formatLineSystem,
 };

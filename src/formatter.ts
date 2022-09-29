@@ -12,7 +12,7 @@
 import { abcText } from "./annotationsActions";
 import { findTokenType, formatterDispatch } from "./dispatcher";
 
-export const format = (
+export const formatScore = (
   bodyText: abcText,
   headerText: string,
   formatLineSystem: (

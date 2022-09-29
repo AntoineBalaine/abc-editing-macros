@@ -2,7 +2,7 @@ import { assert } from "chai";
 import { abcText } from "../annotationsActions";
 import { formatterDispatch, insertSpaceAtStartOfText } from "../dispatcher";
 import { separateHeaderAndBody } from "../fileStructureActions";
-import { findVoicesHandles, format, formatLineSystem } from "../formatter";
+import { findVoicesHandles, formatScore, formatLineSystem } from "../formatter";
 const multiVoice_Tune = `X:1
 T:Zocharti Loch
 C:Louis Lewandowski (1821-1894)
