@@ -5,7 +5,7 @@ import {
 } from "./annotationsActions";
 import { contextObj } from "./transformPitches";
 import { isNomenclatureLine } from "./parseNomenclature";
-export const isHeaderLine = (line: abcText) => /[A-Z]:/i.test(line);
+export const isHeaderLine = (line: abcText) => /(^[A-Z]:)|^%%/i.test(line);
 
 export const separateHeaderAndBody = (text: abcText, context: contextObj) => {
   const lines = text.split(/\n/g);

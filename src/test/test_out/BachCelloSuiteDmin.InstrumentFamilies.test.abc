@@ -7,7 +7,7 @@ V: 1 clef=treble middle=D
 L: 1/16
 V: wd name="wd"
 V: str name="str"
-%%this is a comment
+%%this is a stylesheet directive
 [V: wd] z2z2 (z4 z)(zzz) | (zzzz) (z4 z)(zzz) | (zzzz) z2>z2 (zzzz) | (zzzz) (z2z2z2z2) |
 [V: str] z2z2 (z4 z)(zzz) | (zzzz) (z4 z)(zzz) | (zzzz) z2>z2 (zzzz) | (zzzz) (z2z2z2z2) |
 %

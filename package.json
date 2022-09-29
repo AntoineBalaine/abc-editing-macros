@@ -12,7 +12,8 @@
     "testJS": "tsc && mocha lib/src/**/*.spec.js",
     "start-dev": "ts-node index.ts",
     "start": "node lib/index.js",
-    "build": "tsc"
+    "build": "tsc",
+    "prepare": "npm run build"
   },
   "keywords": [],
   "author": "Antoine Balaine",
@@ -22,6 +23,7 @@
     "@types/expect": "^24.3.0",
     "@types/mocha": "^9.1.0",
     "chai": "^4.3.6",
+    "prettier": "2.6.2",
     "ts-mocha": "^9.0.2",
     "ts-node": "^10.5.0",
     "typescript": "^4.5.5"

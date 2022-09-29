@@ -1,12 +1,17 @@
 import {
   dispatcherFunction,
   findTokenType,
-  isRhythmToken,
   restDispatcher,
 } from "./dispatcher";
 import { dispatcherProps } from "./parseNomenclature";
 import { contextObj, TransformFunction } from "./transformPitches";
 import { consolidateConsecutiveNotesTransform } from "./transformRests";
+import {
+  findEndOfTie,
+  isRhythmToken,
+  tieContainsNotes,
+  tieContainsRests,
+} from "./dispatcherHelpers";
 
 export const parseConsecutiveRests = ({
   text,
@@ -38,6 +43,31 @@ export const parseConsecutiveRests = ({
     } else if (curToken === "articulation" || curToken === "unmatched") {
       context.pos += 1;
       continue;
+    } else if (curToken === "openingTie") {
+      const propsForActionFn = {
+        text,
+        context,
+        transformFunction,
+        dispatcherFunction,
+        parseFunction: parseConsecutiveRests,
+      };
+      if (
+        !tieContainsRests({
+          text,
+          context: { ...context },
+          transformFunction,
+          dispatcherFunction,
+        })
+      ) {
+        break;
+      } else if (
+        tieContainsNotes({ ...propsForActionFn, context: { ...context } })
+      ) {
+        break;
+      } else {
+        context.pos += 1;
+        continue;
+      }
     } else if (curToken === "rest") {
       //find if following chars ar rhythm tokens
       if (spaces) {

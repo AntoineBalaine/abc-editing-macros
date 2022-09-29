@@ -133,6 +133,7 @@ V: str name="str"
       singleBarContainingChordsAnnotationsSymbolsNomenclature,
       multipleBarsContainingChordsAnnotationsSymbolsNomenclature,
       multipleBarsContainingChordsAnnotationsSymbolsNomenclatureLineBreaks,
+      multipleBarsContainingChordsAnnotationsSymbolsNomenclatureLineBreaksAndNotes,
     } = restsInRoutineSamples;
     const {
       consolidatedSingleBar,
@@ -142,6 +143,7 @@ V: str name="str"
       consolidatedSingleBarContainingChordsAnnotationsSymbolsNomenclature,
       consolidatedMultipleBarsContainingChordsAnnotationsSymbolsNomenclature,
       consolidatedMultipleBarsContainingChordsAnnotationsSymbolsNomenclatureLineBreaks,
+      consolidatedMultipleBarsContainingChordsAnnotationsSymbolsNomenclatureLineBreaksAndNotes,
     } = consolidatedRestsInRoutine;
     it("consolidates consecutive rests body of tune", function () {
       assert.equal(consolidateRestsInRoutine(singleBar), consolidatedSingleBar);
@@ -174,6 +176,12 @@ V: str name="str"
           multipleBarsContainingChordsAnnotationsSymbolsNomenclatureLineBreaks
         ),
         consolidatedMultipleBarsContainingChordsAnnotationsSymbolsNomenclatureLineBreaks
+      );
+      assert.equal(
+        consolidateRestsInRoutine(
+          multipleBarsContainingChordsAnnotationsSymbolsNomenclatureLineBreaksAndNotes
+        ),
+        consolidatedMultipleBarsContainingChordsAnnotationsSymbolsNomenclatureLineBreaksAndNotes
       );
     });
   });

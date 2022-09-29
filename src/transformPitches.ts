@@ -3,14 +3,9 @@ import {
   findNotesInKey,
   findUnalteredPitch,
 } from "./parsekeySignature";
-import {
-  isAlterationToken,
-  isRhythmToken,
-  NOTES_LOWERCASE,
-  NOTES_UPPERCASE,
-} from "./dispatcher";
 import { transposeOctUp } from "./test/testTransposeFunctions";
 import { abcText } from "./annotationsActions";
+import {isAlterationToken, isRhythmToken, NOTES_LOWERCASE, NOTES_UPPERCASE} from "./dispatcherHelpers";
 
 export const isLowerCase = (str: string) => {
   return str == str.toLowerCase() && str != str.toUpperCase();
