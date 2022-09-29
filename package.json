@@ -12,7 +12,8 @@
     "testJS": "tsc && mocha lib/src/**/*.spec.js",
     "start-dev": "ts-node index.ts",
     "start": "node lib/index.js",
-    "build": "tsc"
+    "build": "tsc",
+    "prepare": "npm run build"
   },
   "keywords": [],
   "author": "Antoine Balaine",
