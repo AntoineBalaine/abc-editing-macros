@@ -21,7 +21,8 @@ T: Suite 2 for Cello
 T: Prélude
 K: F
 V: 1 clef=treble middle=D
-L: 1/16`;
+L: 1/16
+%%this is a stylesheet directive`;
 
 describe("Score builder", function () {
   let headerAndBody = separateHeaderAndBody(sampleScore as abcText, { pos: 0 });
@@ -52,6 +53,7 @@ T: Prélude
 K: F
 V: 1 clef=treble middle=D
 L: 1/16
+%%this is a stylesheet directive
 V: wd name="wd"
 V: str name="str"`;
     assert.equal(headerAndBody.headerText, testHeader);

@@ -5,7 +5,7 @@ T: Prélude
 K: F
 V: 1 clef=treble middle=D
 L: 1/16
-%%this is a comment
+%%this is a stylesheet directive
 D2F2 (A4 A)(FED) | (^CEGA) (B4 B)(AGF) | (EGB^c) e2>B2 (AGFE) | (FGAF) (D2C2B,2A,2) |
 (B,DFA) d2>c2 (BAGF) | (EGBd) cABG FEGB, | (ACEG) c2>B2 (AGFE) | (DFAC) BGAF (EFAF) | 
 (G,B,DF) B2>A2 (GFEG) | (A,CEG) (CAEG) (FAD_E) | (DA,B,D) (GBAc) BGdF | (E=B,CE) GDEC B,G,EB, | 

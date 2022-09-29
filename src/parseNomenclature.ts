@@ -18,7 +18,7 @@ export type ParseFunction = ({}: dispatcherProps) => string;
 
 export const isNomenclatureTag = (text: abcText, context: contextObj) => {
   const subTag = text.substring(context.pos, text.indexOf("]", context.pos));
-  return /K:.*/i.test(subTag);
+  return /[A-Z]:.*/i.test(subTag);
 };
 export const isNomenclatureLine = (text: abcText, context: contextObj) => {
   return /(^([a-zA-Z]:)|%)/i.test(text.substring(context.pos));

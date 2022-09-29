@@ -50,9 +50,8 @@ export const findTokenType = (text: abcText, context: contextObj) => {
     return "nomenclature line";
   if (context.pos === 0 && isNomenclatureLine(text, { pos: context.pos }))
     return "nomenclature line";
-  if (token)
-    if (token === "[" && isNomenclatureTag(text, context))
-      return "nomenclature tag";
+  if (token === "[" && isNomenclatureTag(text, context))
+    return "nomenclature tag";
   if (token === "[" && !isNomenclatureTag(text, context)) return "chord";
   if (context.pos < text.length) return "unmatched";
   else return "end";
@@ -185,4 +184,67 @@ export const restDispatcher: dispatcherFunction = ({
       return contextChar + restDispatcher(propsForActionFn);
     }
   }
+};
+
+export const formatterDispatch: dispatcherFunction = ({
+  text,
+  context,
+  transformFunction,
+  parseFunction,
+}): string => {
+  const contextChar = text.charAt(context.pos);
+  const tokenType = findTokenType(text, context);
+  const propsForActionFn = {
+    text,
+    context,
+    transformFunction,
+    dispatcherFunction: formatterDispatch,
+  };
+  switch (tokenType) {
+    case "rest":
+    case "openingTie":
+    case "note": {
+      if (parseFunction) {
+        return parseFunction(propsForActionFn);
+      } else {
+        context.pos += 1;
+        return contextChar + formatterDispatch(propsForActionFn);
+      }
+    }
+    case "symbol":
+      //insert space if necessary
+      return jumpToEndOfSymbol(propsForActionFn);
+    case "nomenclature line":
+      return jumpToEndOfNomenclatureLine(propsForActionFn);
+    case "nomenclature tag":
+      return jumpToEndOfNomenclatureTag({
+        text,
+        context,
+        transformFunction,
+        dispatcherFunction: formatterDispatch,
+        parseFunction: insertSpaceAtStartOfText,
+      });
+    case "end":
+      return "";
+    default: {
+      context.pos += 1;
+      return contextChar + formatterDispatch(propsForActionFn);
+    }
+  }
+};
+
+export const insertSpaceAtStartOfText: dispatcherFunction = ({
+  text,
+  context,
+  transformFunction,
+}): string => {
+  const contextChar = text.charAt(context.pos);
+  const propsForActionFn = {
+    text,
+    context,
+    transformFunction,
+    dispatcherFunction: formatterDispatch,
+  };
+  context.pos += 1;
+  return " " + contextChar + formatterDispatch(propsForActionFn);
 };
