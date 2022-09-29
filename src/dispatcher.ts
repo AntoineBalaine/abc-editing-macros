@@ -211,6 +211,12 @@ export const formatterDispatch: dispatcherFunction = ({
         return contextChar + formatterDispatch(propsForActionFn);
       }
     }
+    case "annotation":
+      return contextChar + jumpToEndOfAnnotation(propsForActionFn);
+    case "space":
+      //don't use double spaces outside of comments.
+      context.pos += 1;
+      return contextChar + removeDoubleSpaces(propsForActionFn);
     case "symbol":
       //insert space if necessary
       return jumpToEndOfSymbol(propsForActionFn);
@@ -247,4 +253,22 @@ export const insertSpaceAtStartOfText: dispatcherFunction = ({
   };
   context.pos += 1;
   return " " + contextChar + formatterDispatch(propsForActionFn);
+};
+
+const removeDoubleSpaces: ParseFunction = ({
+  text,
+  context,
+  transformFunction,
+  dispatcherFunction,
+}) => {
+  const propsForActionFn = {
+    text,
+    context,
+    transformFunction,
+    dispatcherFunction: formatterDispatch,
+  };
+  while (text.charAt(context.pos) === " ") {
+    context.pos += 1;
+  }
+  return dispatcherFunction(propsForActionFn);
 };

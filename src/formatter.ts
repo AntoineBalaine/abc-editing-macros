@@ -131,14 +131,15 @@ export function formatLineSystem(
   //ignore comment lines
 
   //insert space between Nomenclature and notes
+  //remove double white spaces outside of comments
+  //make the notes start all at the same spot in the music
   text = formatterDispatch({
     text: text,
     context: { pos: 0 },
     transformFunction: (note: string) => note,
   });
-
-  //remove double white spaces outside of comments
-  //make the notes start all at the same spot in the music
+  //insert space around every bar line
+  text = text.replace(/(?<=[^\s])\|/g, " |").replace(/\|(?=[^\s])/g, "| ");
   //adjust length of bars accordingly
   return alignBarLines(text);
 }

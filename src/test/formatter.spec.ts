@@ -68,26 +68,44 @@ describe("Formatter", function () {
     it("aligns barlines in score system", function () {
       const unformattedLine = `[V:T1]  (B2c2 d2g2)  | f6e2      | (d2c2 d2)e2 | d4 c2z2 |
 [V:T2](G2A2 B2e2)  | d6c2  | (B2A2 B2)c2| B4 A2z2|`;
-      const formattedLine = `[V:T1]  (B2c2 d2g2)  | f6e2      | (d2c2 d2)e2 | d4 c2z2 |
-[V:T2] (G2A2 B2e2)   | d6c2      | (B2A2 B2)c2 | B4 A2z2 |`;
+      const formattedLine = `[V:T1] (B2c2 d2g2) | f6e2 | (d2c2 d2)e2 | d4 c2z2 |
+[V:T2] (G2A2 B2e2) | d6c2 | (B2A2 B2)c2 | B4 A2z2 |`;
 
       assert.equal(
-        formattedLine,
-        formatLineSystem(0, unformattedLine.length + 1, unformattedLine)
+        formatLineSystem(0, unformattedLine.length + 1, unformattedLine),
+        formattedLine
+      );
+    });
+
+    it("removes useless double spaces", function () {
+      const unformattedLine = `[V:T1](B2c2 d2g2)  |f6e2      |`;
+      const formattedLine = `[V:T1] (B2c2 d2g2) | f6e2 |`;
+
+      assert.equal(
+        formatLineSystem(0, unformattedLine.length + 1, unformattedLine),
+        formattedLine
+      );
+    });
+    it("inserts spaces around bar lines", function () {
+      const unformatted = "[V:T1](B2c2 d2g2)|f6e2|(d2c2 d2)e2|d4 c2z2|";
+      const formatted = "[V:T1] (B2c2 d2g2) | f6e2 | (d2c2 d2)e2 | d4 c2z2 |";
+      assert.equal(
+        formatLineSystem(0, unformatted.length + 1, unformatted),
+        formatted
       );
     });
   });
   describe("using dispatcher function", function () {
     it("inserts spaces between nomenclature tag and start of music", function () {
-      const testString = `[V:T1](B2c2 d2g2)  |f6e2`;
-      const insertedSpace = `[V:T1] (B2c2 d2g2)  |f6e2`;
+      const unformatted = `[V:T1](B2c2 d2g2)  |f6e2`;
+      const formatted = `[V:T1] (B2c2 d2g2) |f6e2`;
       assert.equal(
-        insertedSpace,
         formatterDispatch({
-          text: testString,
+          text: unformatted,
           context: { pos: 0 },
           transformFunction: (note: string) => note,
-        })
+        }),
+        formatted
       );
     });
   });
