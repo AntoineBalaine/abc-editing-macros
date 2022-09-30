@@ -212,7 +212,7 @@ export const formatterDispatch: dispatcherFunction = ({
       }
     }
     case "annotation":
-      return contextChar + jumpToEndOfAnnotation(propsForActionFn);
+      return jumpToEndOfAnnotation(propsForActionFn);
     case "space":
       //don't use double spaces outside of comments.
       context.pos += 1;

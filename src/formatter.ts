@@ -11,18 +11,31 @@
 
 import { abcText } from "./annotationsActions";
 import { findTokenType, formatterDispatch } from "./dispatcher";
+import { separateHeaderAndBody } from "./fileStructureActions";
 
-export const format = (
-  bodyText: abcText,
-  headerText: string,
-  formatLineSystem: (
-    lineNumberOfSequenceStart: number,
-    pos: number,
-    bodyText: abcText
-  ) => abcText
+export const spliceText = (
+  text: abcText,
+  start: number,
+  end: number,
+  replacement: abcText
 ) => {
+  // string to modify, start index, end index, and what to replace that selection with
+
+  let head = text.substring(0, start);
+  let tail = text.substring(end, text.length);
+
+  let result = head + replacement + tail;
+
+  return result;
+};
+
+export const formatScore = (text: abcText): abcText => {
+  let { headerText, bodyText } = separateHeaderAndBody(text as abcText, {
+    pos: 0,
+  });
+
   const findVoiceNames = findVoicesHandles(headerText);
-  if (!findVoiceNames) return;
+  if (!findVoiceNames) return text;
   const voicesNames = findVoiceNames.map((i) => i?.toString());
   /**
    * trouve la première voix de la séquence,
@@ -42,6 +55,7 @@ export const format = (
   let lineNumberOfSequenceStart: number = -1;
 
   const bodyLines = bodyText.split("\n");
+  const outputText = bodyText.slice();
   while (curLinePos.pos < bodyLines.length) {
     curLinePos.pos += 1;
     const curLine = bodyLines[curLinePos.pos];
@@ -62,7 +76,12 @@ export const format = (
         if (currentVoiceIndex < currentPositionInVoicesNames) {
           // if the currentVoice is not the next expected voice, then we have changed lines.
           //break the sequence, format the previous sequence
-          formatLineSystem(lineNumberOfSequenceStart, curLinePos.pos, bodyText);
+
+          const formattedLineSystem = formatLineSystem(
+            lineNumberOfSequenceStart,
+            curLinePos.pos,
+            bodyText
+          );
           startPositionInVoicesNames = voicesNames.indexOf(currentVoiceName);
           currentPositionInVoicesNames = startPositionInVoicesNames;
           lineNumberOfSequenceStart = curLinePos.pos;
@@ -74,6 +93,7 @@ export const format = (
       continue;
     }
   }
+  return "";
 };
 
 export const findVoicesHandles = (headerText: string) => {
