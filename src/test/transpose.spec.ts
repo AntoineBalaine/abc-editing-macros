@@ -1,4 +1,4 @@
-import { noteDispatcher} from "../dispatcher";
+import { noteDispatcher } from "../dispatcher";
 import {
   convertToEnharmoniaTransform,
   convertToRestTransform,
@@ -30,7 +30,7 @@ import {
   findInstrumentCalls,
 } from "../annotationsActions";
 import { expect } from "chai";
-import {isNoteToken} from "../dispatcherHelpers";
+import { isNoteToken } from "../dispatcherHelpers";
 
 const fullTextLine =
   "(E,A,^CE) (GFED ^C=B,A,G,) | (F,A,DF) ADFA dBcA | G,DGA B(G^FG) _eGDg | [A,G^C]12 | [A,Fd]12 | [A,Ed]12 | [A,E^c]12 | [D,A,Fd]12 ||";
@@ -267,6 +267,15 @@ describe("Transpose and rest", function () {
             transposeStepDownTransform(note, "[K:A]"),
         }),
         "B,D,^E,A,d"
+      );
+      assert.equal(
+        noteDispatcher({
+          text: "^C=B,A,G,",
+          context: { pos: 0 },
+          transformFunction: (note: string) =>
+            transposeStepDownTransform(note, "[K:A]"),
+        }),
+        "B,A,G,F,"
       );
     });
     it("no notes in string - do not transpose anything", function () {

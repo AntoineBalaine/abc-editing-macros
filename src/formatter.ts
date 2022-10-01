@@ -10,7 +10,11 @@
  */
 
 import { abcText } from "./annotationsActions";
-import { findTokenType, formatterDispatch } from "./dispatcher";
+import {
+  findTokenType,
+  formatterDispatch,
+  removeDoubleSpaces,
+} from "./dispatcher";
 import { separateHeaderAndBody } from "./fileStructureActions";
 
 export const spliceText = (
@@ -38,11 +42,11 @@ export const formatScore = (text: abcText): abcText => {
   if (!findVoiceNames) return text;
   const voicesNames = findVoiceNames.map((i) => i?.toString());
   /**
-   * trouve la première voix de la séquence,
-   * dès que la séquence se brise,
-   * redémarre une séquence
+   * find the first voice in the sequence,
+   * as soon as the sequence breaks,
+   * start another sequence
    *
-   * càd:
+   * which is:
    *    find system break
    *
    */
@@ -119,22 +123,6 @@ const findVoiceAnnotationType = function (curLine: string): VoiceAnnotation {
   } else return VoiceAnnotation.none;
 };
 
-const isMatchingVoice = (
-  curLine: string,
-  voiceName: string | undefined
-): VoiceAnnotation | false => {
-  const voiceAnnotation = findVoiceAnnotationType(curLine);
-  if (
-    voiceAnnotation === VoiceAnnotation.inline ||
-    voiceAnnotation === VoiceAnnotation.outline
-  ) {
-    const lineVoice = curLine?.match(/(?<=^V:)[^\s]*(?=\s*.*)/);
-    if (lineVoice && lineVoice[0] === voiceName) {
-      return voiceAnnotation;
-    } else return false;
-  } else return false;
-};
-
 export function formatLineSystem(
   lineNumberOfSequenceStart: number,
   pos: number,
@@ -146,20 +134,27 @@ export function formatLineSystem(
    * no more than one space before and after notes
    */
   let text = bodyText.substring(lineNumberOfSequenceStart, pos);
-  const context = { pos: -1 };
-
-  //ignore comment lines
 
   //insert space between Nomenclature and notes
   //remove double white spaces outside of comments
-  //make the notes start all at the same spot in the music
+
   text = formatterDispatch({
     text: text,
     context: { pos: 0 },
     transformFunction: (note: string) => note,
+    parseFunction: removeDoubleSpaces,
   });
+
+  //ignore comment lines
+  //make the notes start all at the same spot in the music
+  text = startAllNotesAtSameIndexInLine(text);
+
   //insert space around every bar line
   text = text.replace(/(?<=[^\s])\|/g, " |").replace(/\|(?=[^\s])/g, "| ");
+
+  //align lyrics
+  text = alignLyrics(text);
+
   //adjust length of bars accordingly
   return alignBarLines(text);
 }
@@ -197,3 +192,120 @@ const alignBarLines = (text: string) => {
   }
   return lines_bars.map((line_bar) => line_bar.join("|")).join("\n");
 };
+
+function alignLyrics(text: string): string {
+  //insert space after lyric nomenclature
+  text = text.replace(/^w:(?=[^\s])/, "w: ");
+
+  const lines = text.split("\n");
+  const lines_bars = lines.map((line) => line.split("|"));
+  //one syllable per note, or a "_" for syllables that span to the following note
+  // uses barlines
+  /**
+   * iterate ligns
+   * for each lign if the next one  is lyrics, format them together:
+   * align bar ligns
+   * align syllables with notes
+   */
+
+  const Lines = text.split("\n");
+  const indexOfLyricLines = Lines.map((line, index) =>
+    /^w:/.test(line) ? index : -1
+  );
+  /**
+   * subdivide by barlines
+   * align syllables with notes.
+   * use the dispatcher to find all the indexes of notes
+   */
+  indexOfLyricLines.map((lineIndex, positionInList) => {
+    const formattingReferenceLine = findFirstPrecedingMusicLineIndex(
+      Lines,
+      indexOfLyricLines[positionInList]
+    );
+    // find indexes of notes.
+  });
+  for (
+    let lyricLineIdx = 0;
+    lyricLineIdx < indexOfLyricLines.length;
+    lyricLineIdx++
+  ) {
+    const precedingLine = indexOfLyricLines[lyricLineIdx] - 1;
+  }
+
+  return text;
+  //return lines_bars.map((line_bar) => line_bar.join("|")).join("\n");
+}
+
+export const startAllNotesAtSameIndexInLine = (text: string): string => {
+  // add a space between voice nomenclatures and notes if there isn't one already
+  // add a space between lyric nomenclature and notes if there isn't one already
+  text = text
+    .split("\n")
+    .map((line) =>
+      line
+        .replace(/(?<=^\[V:[^\]]*\])(?=[^\s])/, " ")
+        .replace(/(?<=^w:)(?=[^\s])/, " ")
+    )
+    .join("\n");
+  //inline and lyrics
+  if (
+    text.split("\n").some((line) => /^w:/.test(line)) &&
+    text
+      .split("\n")
+      .some((line) => findVoiceAnnotationType(line) === VoiceAnnotation.inline)
+  ) {
+    /**
+     * which of the lyrics or the annotation is the longuest.
+     * start the music after that spot.
+     */
+    const Lines = text.split("\n");
+    const lyricLineIdx = Lines.findIndex((line) => /^w:/.test(line));
+    /**
+     * find longuest voice nomenclature
+     * eg: [V:(str|wd|brass|voice|etc.)]
+     */
+    let longuestVoiceNomenclature = Lines.map((line) => {
+      return line.match(/^\[V:[^\]]*\]/)?.filter((n) => n)[0] ?? "";
+    }).sort((a, b) => b.length - a.length)[0];
+
+    const startAllNotesAtThisIndex = longuestVoiceNomenclature.length + 1;
+
+    return Lines.map((Line) => {
+      const rgx = new RegExp(/(^(\[V:[^\]]*\]|w:)\s+)(?=[^\s])/);
+      const match = Line.match(rgx);
+      const length = match ? match[0]?.length : undefined;
+      if (match && length && length < startAllNotesAtThisIndex) {
+        // count amount of missing spaces and insert it before start of music
+        const missingSpaces = startAllNotesAtThisIndex - length + 1;
+        return (
+          match[0] + new Array(missingSpaces).join(" ") + Line.substring(length)
+        );
+      } else return Line;
+    }).join("\n");
+  } else {
+    // outline and lyrics
+    return text;
+  }
+};
+
+function findFirstPrecedingMusicLineIndex(
+  Lines: string[],
+  lyricLineIndex: number
+) {
+  const context = { pos: lyricLineIndex };
+  while (context.pos >= 0) {
+    context.pos -= 1;
+    /**
+     * if is not a nomenclature line or a comment line, return current position
+     */
+    const currentToken = findTokenType(Lines[context.pos], { pos: 0 });
+    switch (currentToken) {
+      case "nomenclature line":
+      case "comment line":
+        break;
+      default:
+        return context.pos;
+    }
+  }
+  return -1;
+}

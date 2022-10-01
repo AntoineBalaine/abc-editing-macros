@@ -54,6 +54,7 @@ export const findTokenType = (text: abcText, context: contextObj) => {
     return "nomenclature tag";
   if (token === "[" && !isNomenclatureTag(text, context)) return "chord";
   if (context.pos < text.length) return "unmatched";
+  if (/^%/.test(text.substring(context.pos))) return "comment line";
   else return "end";
 };
 
@@ -199,6 +200,7 @@ export const formatterDispatch: dispatcherFunction = ({
     context,
     transformFunction,
     dispatcherFunction: formatterDispatch,
+    parseFunction,
   };
   switch (tokenType) {
     case "rest":
@@ -214,22 +216,18 @@ export const formatterDispatch: dispatcherFunction = ({
     case "annotation":
       return jumpToEndOfAnnotation(propsForActionFn);
     case "space":
-      //don't use double spaces outside of comments.
-      context.pos += 1;
-      return contextChar + removeDoubleSpaces(propsForActionFn);
+      return parseFunction
+        ? parseFunction(propsForActionFn)
+        : (() => {
+            context.pos += 1;
+            return contextChar + formatterDispatch(propsForActionFn);
+          })();
     case "symbol":
-      //insert space if necessary
       return jumpToEndOfSymbol(propsForActionFn);
     case "nomenclature line":
       return jumpToEndOfNomenclatureLine(propsForActionFn);
     case "nomenclature tag":
-      return jumpToEndOfNomenclatureTag({
-        text,
-        context,
-        transformFunction,
-        dispatcherFunction: formatterDispatch,
-        parseFunction: insertSpaceAtStartOfText,
-      });
+      return jumpToEndOfNomenclatureTag(propsForActionFn);
     case "end":
       return "";
     default: {
@@ -239,36 +237,26 @@ export const formatterDispatch: dispatcherFunction = ({
   }
 };
 
-export const insertSpaceAtStartOfText: dispatcherFunction = ({
-  text,
-  context,
-  transformFunction,
-}): string => {
-  const contextChar = text.charAt(context.pos);
-  const propsForActionFn = {
-    text,
-    context,
-    transformFunction,
-    dispatcherFunction: formatterDispatch,
-  };
-  context.pos += 1;
-  return " " + contextChar + formatterDispatch(propsForActionFn);
-};
-
-const removeDoubleSpaces: ParseFunction = ({
+export const removeDoubleSpaces: ParseFunction = ({
   text,
   context,
   transformFunction,
   dispatcherFunction,
+  parseFunction,
 }) => {
   const propsForActionFn = {
     text,
     context,
     transformFunction,
     dispatcherFunction: formatterDispatch,
+    parseFunction,
   };
-  while (text.charAt(context.pos) === " ") {
-    context.pos += 1;
+  const contextChar = text.charAt(context.pos);
+  context.pos += 1;
+  if (contextChar === " ") {
+    while (text.charAt(context.pos) === " ") {
+      context.pos += 1;
+    }
   }
-  return dispatcherFunction(propsForActionFn);
+  return contextChar + dispatcherFunction(propsForActionFn);
 };

@@ -1,12 +1,13 @@
 import { assert, expect } from "chai";
 import { abcText } from "../annotationsActions";
-import { formatterDispatch, insertSpaceAtStartOfText } from "../dispatcher";
+import { formatterDispatch } from "../dispatcher";
 import { separateHeaderAndBody } from "../fileStructureActions";
 import {
   findVoicesHandles,
   formatLineSystem,
   formatScore,
   spliceText,
+  startAllNotesAtSameIndexInLine,
 } from "../formatter";
 const multiVoice_Tune = `X:1
 T:Zocharti Loch
@@ -112,20 +113,29 @@ describe("Formatter", function () {
         formatted
       );
     });
+    describe("aligns starts of notes in system", function () {
+      it("starts music at the same index for every line in system", function () {
+        const unformatted = `
+[V: str] abcd |
+[V: wd] abcd |
+[V:3] abcd |
+w: abcd |`;
+
+        const formatted = `
+[V: str] abcd |
+[V: wd]  abcd |
+[V:3]    abcd |
+w:       abcd |`;
+        assert.equal(startAllNotesAtSameIndexInLine(unformatted), formatted);
+      });
+      it("inserts spaces between nomenclature tag and start of music", function () {
+        const unformatted = `[V:T1](B2c2 d2g2)  |f6e2`;
+        const formatted = `[V:T1] (B2c2 d2g2)  |f6e2`;
+        assert.equal(startAllNotesAtSameIndexInLine(unformatted), formatted);
+      });
+    });
   });
   describe("using dispatcher function", function () {
-    it("inserts spaces between nomenclature tag and start of music", function () {
-      const unformatted = `[V:T1](B2c2 d2g2)  |f6e2`;
-      const formatted = `[V:T1] (B2c2 d2g2) |f6e2`;
-      assert.equal(
-        formatterDispatch({
-          text: unformatted,
-          context: { pos: 0 },
-          transformFunction: (note: string) => note,
-        }),
-        formatted
-      );
-    });
     it("jumps to end of annotations", function () {
       const unformatted = `[V:1] z4 (GFED ^C=B,A,G,) | (de^fg) z8 | "Cmin \\n"z8  | 
 [V:2]    z4 (_E_DC_B, A,G,F,_E,)|(de^fg) z8| "Cmin \\n"z8  | `;
