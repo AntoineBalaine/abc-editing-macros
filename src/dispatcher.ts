@@ -36,6 +36,28 @@ export type dispatcherFunction = ({
   tag,
 }: noteDispatcherProps) => string;
 
+/**
+ * To do:
+ * replace findTokenType's response strings with the enum instead
+ */
+enum tokenTypes {
+  note = "note",
+  rest = "rest",
+  openingTie = "openingTie",
+  articulation = "articulation",
+  space = "space",
+  barLine = "barLine",
+  annotation = "annotation",
+  symbol = "symbol",
+  lyric = "lyric line",
+  nomenclatureLine = "nomenclature line",
+  nomenclatureTag = "nomenclature tag",
+  chord = "chord",
+  unmatched = "unmatched",
+  comment = "comment line",
+  end = "end",
+}
+
 export const findTokenType = (text: abcText, context: contextObj) => {
   const token = text.charAt(context.pos);
   if (isPitchToken(token)) return "note";
@@ -46,6 +68,8 @@ export const findTokenType = (text: abcText, context: contextObj) => {
   if (token === "|") return "barLine";
   if (token === '"') return "annotation";
   if (token === "!") return "symbol";
+  if (token === "w" && /^w:/.test(text.substring(context.pos)))
+    return "lyric line";
   if (token === "\n" && isNomenclatureLine(text, { pos: context.pos + 1 }))
     return "nomenclature line";
   if (context.pos === 0 && isNomenclatureLine(text, { pos: context.pos }))
@@ -85,6 +109,7 @@ export const noteDispatcher: dispatcherFunction = ({
       }
     case "symbol":
       return jumpToEndOfSymbol(propsForActionFn);
+    case "lyric line":
     case "nomenclature line":
       return jumpToEndOfNomenclatureLine(propsForActionFn);
     case "nomenclature tag":
@@ -259,4 +284,40 @@ export const removeDoubleSpaces: ParseFunction = ({
     }
   }
   return contextChar + dispatcherFunction(propsForActionFn);
+};
+
+export const musicSplitter_lyricFormatter: dispatcherFunction = ({
+  text,
+  context,
+  transformFunction,
+  parseFunction,
+}) => {
+  const contextChar = text.charAt(context.pos);
+  const tokenType = findTokenType(text, context);
+  const propsForActionFn = {
+    text,
+    context,
+    transformFunction,
+    dispatcherFunction: formatterDispatch,
+    parseFunction,
+  };
+  switch (tokenType) {
+    case "rest":
+    case "openingTie":
+    case "note": {
+      context.pos += 1;
+      return contextChar + musicSplitter_lyricFormatter(propsForActionFn);
+    }
+    case "annotation":
+    case "space":
+    case "symbol":
+    case "nomenclature tag":
+      return jumpToEndOfNomenclatureTag(propsForActionFn);
+    case "end":
+      return "";
+    default: {
+      context.pos += 1;
+      return contextChar + formatterDispatch(propsForActionFn);
+    }
+  }
 };

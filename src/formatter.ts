@@ -15,7 +15,15 @@ import {
   formatterDispatch,
   removeDoubleSpaces,
 } from "./dispatcher";
+import {
+  isLetter,
+  isOctaveToken,
+  isRest,
+  isRhythmToken,
+} from "./dispatcherHelpers";
 import { separateHeaderAndBody } from "./fileStructureActions";
+import { jumpToEndOfNote } from "./parseNotes";
+import { contextObj } from "./transformPitches";
 
 export const spliceText = (
   text: abcText,
@@ -151,6 +159,7 @@ export function formatLineSystem(
 
   //insert space around every bar line
   text = text.replace(/(?<=[^\s])\|/g, " |").replace(/\|(?=[^\s])/g, "| ");
+  //insert space around every nomenclature
 
   //align lyrics
   text = alignLyrics(text);
@@ -197,10 +206,11 @@ function alignLyrics(text: string): string {
   //insert space after lyric nomenclature
   text = text.replace(/^w:(?=[^\s])/, "w: ");
 
-  const lines = text.split("\n");
-  const lines_bars = lines.map((line) => line.split("|"));
-  //one syllable per note, or a "_" for syllables that span to the following note
-  // uses barlines
+  const Lines = text.split("\n");
+
+  /**lyrics are written with one syllable per note, or a "_" for syllables that span to the following note
+   * they also use barlines
+   */
   /**
    * iterate ligns
    * for each lign if the next one  is lyrics, format them together:
@@ -208,8 +218,7 @@ function alignLyrics(text: string): string {
    * align syllables with notes
    */
 
-  const Lines = text.split("\n");
-  const indexOfLyricLines = Lines.map((line, index) =>
+  const lyricLinesIndexs = Lines.map((line, index) =>
     /^w:/.test(line) ? index : -1
   );
   /**
@@ -217,23 +226,106 @@ function alignLyrics(text: string): string {
    * align syllables with notes.
    * use the dispatcher to find all the indexes of notes
    */
-  indexOfLyricLines.map((lineIndex, positionInList) => {
-    const formattingReferenceLine = findFirstPrecedingMusicLineIndex(
+  lyricLinesIndexs.forEach((lyricLineIndex) => {
+    const musicLineIndex = findFirstPrecedingMusicLineIndex(
       Lines,
-      indexOfLyricLines[positionInList]
+      lyricLineIndex
     );
-    // find indexes of notes.
-  });
-  for (
-    let lyricLineIdx = 0;
-    lyricLineIdx < indexOfLyricLines.length;
-    lyricLineIdx++
-  ) {
-    const precedingLine = indexOfLyricLines[lyricLineIdx] - 1;
-  }
+    if (musicLineIndex === -1) return lyricLineIndex;
 
-  return text;
-  //return lines_bars.map((line_bar) => line_bar.join("|")).join("\n");
+    /**
+     * assumption: nomenclature & bar lines are separated from the music by
+     * spaces, but not the annotations
+     */
+    //remove voice nomenclature at start of line
+    let startMusicBarIdx = 0;
+    let startLyricBarIdx = 0;
+    let currentVoiceNomenclature = "";
+    let currentLyricsNomenclature = "w: ";
+    if (/^[V:[^\]]*\]/.test(Lines[musicLineIndex])) {
+      startMusicBarIdx = Lines[musicLineIndex].indexOf("]") + 1;
+      currentVoiceNomenclature =
+        Lines[musicLineIndex].substring(0, startMusicBarIdx + 1) + " ";
+    }
+    //remove lyrics nomenclature at start of line
+    if (/^w:/.test(Lines[lyricLineIndex])) {
+      startLyricBarIdx = Lines[lyricLineIndex].indexOf("w:") + 1;
+    }
+    if (currentVoiceNomenclature.length > currentLyricsNomenclature.length) {
+      const fillerSpacesNeeded =
+        currentVoiceNomenclature.length - currentLyricsNomenclature.length;
+      currentLyricsNomenclature += new Array(fillerSpacesNeeded).join(" ");
+    }
+
+    const musicLine = Lines[musicLineIndex].substring(startMusicBarIdx);
+    const lyricLine = Lines[lyricLineIndex].substring(startLyricBarIdx);
+    /**
+     * when putting back together the line, will have to account for the case in which
+     * there was a closing barline at the end of it
+     */
+    const musicBars = musicLine.split("|").filter((n) => n !== "");
+    const lyricBars = lyricLine.split("|").filter((n) => n !== "");
+
+    let smallestNumberOfBars =
+      lyricBars.length <= musicBars.length
+        ? lyricBars.length
+        : musicBars.length;
+
+    for (let barIdx = 0; barIdx < smallestNumberOfBars; barIdx++) {
+      /**
+       * remove start of line nomenclature tags
+       * eg. [V:str] and w:
+       * in the current bar,
+       * split at every space.
+       * iterate the musicbar
+       * if currentMusicGroup doesn't contain nomenclature or comments
+       *    find matching lyric
+       *    compare lengths and add missing spaces at the end of the shortest one
+       * else
+       *    parse
+       *      split at every group with annotations included
+       *
+       */
+
+      const curMusicBar = musicBars[barIdx];
+      let unformattedLyricBar = lyricBars[barIdx].split(" ");
+
+      const noteGroups = curMusicBar.split(" "); //split at spaces that are not inside annotations
+
+      /**
+       * match noteGroups with the corresponding lyrics,
+       * format them together
+       */
+      let { formattedLyricsBar, formattedNotesBar } = noteGroups
+        .map((noteGroup) => {
+          let __return;
+          ({ __return, noteGroup, unformattedLyricBar } =
+            formatNoteGroupsAndCorrespondingLyrics(
+              noteGroup,
+              unformattedLyricBar
+            ));
+          return __return;
+        })
+        .reduce(
+          (previous, curr, index, collection) => {
+            return {
+              formattedNotesBar: (previous.formattedNotesBar +=
+                curr.noteGroup + " "),
+              formattedLyricsBar: (previous.formattedLyricsBar +=
+                curr.lyricGroup + " "),
+            };
+          },
+          { formattedNotesBar: " ", formattedLyricsBar: " " }
+        );
+
+      musicBars[barIdx] = formattedNotesBar;
+      lyricBars[barIdx] = formattedLyricsBar;
+    }
+    Lines[musicLineIndex] = currentVoiceNomenclature + musicBars.join("|");
+    Lines[lyricLineIndex] = currentLyricsNomenclature + lyricBars.join("|");
+  });
+
+  return Lines.join("\n");
 }
 
 export const startAllNotesAtSameIndexInLine = (text: string): string => {
@@ -288,10 +380,156 @@ export const startAllNotesAtSameIndexInLine = (text: string): string => {
   }
 };
 
-function findFirstPrecedingMusicLineIndex(
+/**
+ * Allowed format:
+ * /(note)*(annotation|nomenclature tag|symbol)/
+ * @param subGroup
+ * @returns
+ */
+const countNotesInSubGroup = (subGroup: abcText) => {
+  const context: contextObj = { pos: -1 };
+  let noteCount = 0;
+  const notesStartPosition = -1;
+
+  while (context.pos < subGroup.length) {
+    const tokenType = findTokenType(subGroup, context);
+    switch (tokenType) {
+      case "chord":
+      case "note":
+      case "rest": {
+        if (notesStartPosition === -1) {
+          notesStartPosition === context.pos;
+        }
+        context.pos =
+          tokenType === "chord"
+            ? findEndOfChord(subGroup, context)
+            : findEndOfNote(subGroup, context);
+        noteCount += 1;
+        break;
+      }
+      case "openingTie":
+        break;
+      case "articulation":
+      case "space":
+      case "annotation":
+      case "symbol":
+      case "nomenclature tag":
+      case "end":
+        break;
+    }
+  }
+  return noteCount;
+};
+
+/**
+ * subdivide the bar into groups of notes divided by spaces (eg. "abcd dbca")
+ * divide these noteGroups into subgroups containing notes followed by anything that isn't notes
+ * eg 'abce"this is an annotation"dbca' will become ['abce"this is an annotation"', 'dbca']
+ * once these are all separated,
+ * for each note subGroup
+ *    count number of notes in subGroup
+ *    pull corresponding amount of syllables
+ *    compare the string length of subGroup and syllable subGroup
+ *    if syllable subGroup is shorter, make it the same length with filler spaces
+ *    append the resulting syllable subGroup to a lyricsGroup that corresponds to the noteGroup
+ * then back at the noteGroup level,
+ * compare the full noteGroup with the corresponding lyricsGroup
+ * if the noteGroup is shorter, make them the same length with filler spaces
+ * return both joined() in format
+ * { noteBar, lyricsBar }
+ */
+const formatNoteGroupsAndCorrespondingLyrics = (
+  noteGroup: string,
+  unformattedLyricBar: string[]
+) => {
+  let lyricGroup: string = "";
+
+  let subdivisionsInNoteGroup: string[] | undefined;
+  ({ subdivisionsInNoteGroup } = findSubdivisionsInNoteGroup(noteGroup, ""));
+  subdivisionsInNoteGroup?.forEach((subGroup) => {
+    /**
+     * count number of notes in group
+     * pull corresponding amount of syllables
+     * add spaces at the end of the group of lyrics if their length is shorter than subGroup
+     */
+    const noteCount = countNotesInSubGroup(subGroup);
+    let subGrpLyrics = unformattedLyricBar.splice(0, noteCount).join(" ");
+    unformattedLyricBar = unformattedLyricBar.slice(noteCount);
+
+    if (subGrpLyrics.length < subGroup.length) {
+      const fillerSpacesNeeded = subGroup.length - subGrpLyrics.length;
+      subGrpLyrics += new Array(fillerSpacesNeeded).fill(" ");
+    }
+    lyricGroup += subGrpLyrics;
+  });
+
+  if (lyricGroup.length - 1 > noteGroup.length) {
+    const fillerSpacesNeeded = lyricGroup.length - 1 - noteGroup.length;
+    noteGroup += new Array(fillerSpacesNeeded);
+  }
+  return {
+    __return: {
+      noteGroup,
+      lyricGroup,
+    },
+    noteGroup,
+    unformattedLyricBar,
+  };
+};
+
+function findSubdivisionsInNoteGroup(noteGroup: string, curString: string) {
+  const context: contextObj = {
+    startPos: 0,
+    pos: 0,
+  };
+  const subdivisionsInNoteGroup: string[] = [];
+
+  while (context.pos < noteGroup.length) {
+    context.pos += 1;
+    const contextChar = noteGroup.charAt(context.pos);
+    const tokenType = findTokenType(noteGroup, context);
+    switch (tokenType) {
+      case "annotation":
+      case "symbol":
+      case "nomenclature tag": {
+        // jump to end of nomenclature tag, annotation, etc.
+        let cursor = context.pos + 1;
+        const matchingToken = findClosingToken(tokenType);
+        while (
+          cursor < noteGroup.length &&
+          noteGroup[cursor] !== matchingToken
+        ) {
+          cursor += 1;
+          if (noteGroup[cursor] === matchingToken) {
+            cursor += 1;
+            curString += noteGroup.substring(context.pos, cursor);
+            subdivisionsInNoteGroup.push(curString);
+            curString = "";
+            context.pos = cursor;
+          }
+        }
+        break;
+      }
+      case "end": {
+        curString += noteGroup.substring(context.pos);
+        subdivisionsInNoteGroup.push(curString);
+        curString = "";
+        break;
+      }
+      default: {
+        context.pos += 1;
+        curString += contextChar;
+        break;
+      }
+    }
+  }
+  return { subdivisionsInNoteGroup };
+}
+
+export const findFirstPrecedingMusicLineIndex = (
   Lines: string[],
   lyricLineIndex: number
-) {
+) => {
   const context = { pos: lyricLineIndex };
   while (context.pos >= 0) {
     context.pos -= 1;
@@ -300,6 +538,8 @@ function findFirstPrecedingMusicLineIndex(
      */
     const currentToken = findTokenType(Lines[context.pos], { pos: 0 });
     switch (currentToken) {
+      case "lyric line":
+        return -1;
       case "nomenclature line":
       case "comment line":
         break;
@@ -308,4 +548,51 @@ function findFirstPrecedingMusicLineIndex(
     }
   }
   return -1;
+};
+
+function findClosingToken(tokenType: string) {
+  switch (tokenType) {
+    case "annotation":
+      return '"';
+    case "space":
+      return " ";
+    case "symbol":
+      return "!";
+    case "nomenclature tag":
+      return "]";
+    default:
+      return "";
+  }
+}
+
+export function findEndOfChord(text: string, context: contextObj) {
+  while (text.charAt(context.pos) !== "]") {
+    context.pos += 1;
+  }
+  context.pos += 1;
+  while (isRhythmToken(text.charAt(context.pos))) {
+    context.pos += 1;
+  }
+  return context.pos;
+}
+
+export function findEndOfNote(text: string, context: contextObj) {
+  let note = text.charAt(context.pos);
+  let foundLetter = isLetter(note);
+
+  while (context.pos < text.length) {
+    context.pos += 1;
+    const contextChar = text.charAt(context.pos);
+    if (
+      (!foundLetter && isLetter(contextChar)) ||
+      (foundLetter && isOctaveToken(contextChar)) ||
+      (foundLetter && isRhythmToken(contextChar)) ||
+      (!foundLetter && isRest(contextChar))
+    ) {
+      if (!foundLetter && (isLetter(contextChar) || isRest(contextChar)))
+        foundLetter = true;
+      note += text.charAt(context.pos);
+    } else break;
+  }
+  return context.pos;
 }

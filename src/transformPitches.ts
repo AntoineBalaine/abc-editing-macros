@@ -5,7 +5,12 @@ import {
 } from "./parsekeySignature";
 import { transposeOctUp } from "./test/testTransposeFunctions";
 import { abcText } from "./annotationsActions";
-import {isAlterationToken, isRhythmToken, NOTES_LOWERCASE, NOTES_UPPERCASE} from "./dispatcherHelpers";
+import {
+  isAlterationToken,
+  isRhythmToken,
+  NOTES_LOWERCASE,
+  NOTES_UPPERCASE,
+} from "./dispatcherHelpers";
 
 export const isLowerCase = (str: string) => {
   return str == str.toLowerCase() && str != str.toUpperCase();
@@ -291,6 +296,7 @@ export const transposeStepDownTransform = (
 };
 export type contextObj = {
   pos: number;
+  startPos?: number;
 };
 
 export type TransformFunction = (note: string) => string;
