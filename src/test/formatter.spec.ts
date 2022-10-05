@@ -3,12 +3,14 @@ import { abcText } from "../annotationsActions";
 import { formatterDispatch } from "../dispatcher";
 import { separateHeaderAndBody } from "../fileStructureActions";
 import {
+  countNotesInSubGroup,
   findEndOfChord,
   findEndOfNote,
   findFirstPrecedingMusicLineIndex,
   findSubdivisionsInNoteGroup,
   findVoicesHandles,
   formatLineSystem,
+  formatNoteGroupsAndCorrespondingLyrics,
   formatScore,
   spliceText,
   startAllNotesAtSameIndexInLine,
@@ -233,6 +235,38 @@ w: a second lyricline`;
         assert.deepEqual(findSubdivisionsInNoteGroup(grp3, ""), {
           subdivisionsInNoteGroup: grp3Divisé,
         });
+      });
+      it("counts notes in group of notes", function () {
+        assert.equal(countNotesInSubGroup("CCGG"), 4);
+        assert.equal(countNotesInSubGroup("^C/C_G//=G/2"), 4);
+        assert.equal(countNotesInSubGroup("CC!fermata!"), 2);
+        assert.equal(countNotesInSubGroup("^C//_B2!fermata!"), 2);
+        assert.equal(countNotesInSubGroup('^C//_B2"this is an annotation"'), 2);
+      });
+      it("formats Note Groups with Corresponding Lyrics", function () {
+        const Line1 = `[V:T1]  CC GG AA G2 | FF EE DD C2 |
+w: À vous di rai je ma man | Ce qui cau se mon tour ment | `;
+
+        assert.deepEqual(
+          formatNoteGroupsAndCorrespondingLyrics(
+            `CCGG`,
+            `À vous di rai je ma man`.split(" ")
+          ).__return,
+          {
+            noteGroup: "CCGG         ",
+            lyricGroup: "À vous di rai",
+          }
+        );
+        assert.deepEqual(
+          formatNoteGroupsAndCorrespondingLyrics(
+            `CC!fermata!GG`,
+            `À vous di rai je ma man`.split(" ")
+          ).__return,
+          {
+            noteGroup: "CC!fermata!GG    ",
+            lyricGroup: "À vous     di rai",
+          }
+        );
       });
     });
   });

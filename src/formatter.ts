@@ -386,12 +386,13 @@ export const startAllNotesAtSameIndexInLine = (text: string): string => {
  * @param subGroup
  * @returns
  */
-const countNotesInSubGroup = (subGroup: abcText) => {
+export const countNotesInSubGroup = (subGroup: abcText) => {
   const context: contextObj = { pos: -1 };
   let noteCount = 0;
   const notesStartPosition = -1;
 
   while (context.pos < subGroup.length) {
+    context.pos += 1;
     const tokenType = findTokenType(subGroup, context);
     switch (tokenType) {
       case "chord":
@@ -402,8 +403,8 @@ const countNotesInSubGroup = (subGroup: abcText) => {
         }
         context.pos =
           tokenType === "chord"
-            ? findEndOfChord(subGroup, context)
-            : findEndOfNote(subGroup, context);
+            ? findEndOfChord(subGroup, context) - 1
+            : findEndOfNote(subGroup, context) - 1;
         noteCount += 1;
         break;
       }
@@ -413,7 +414,20 @@ const countNotesInSubGroup = (subGroup: abcText) => {
       case "space":
       case "annotation":
       case "symbol":
-      case "nomenclature tag":
+      case "nomenclature tag": {
+        // jump to end of nomenclature tag, annotation, etc.
+        let cursor = context.pos + 1;
+        const matchingToken = findClosingToken(tokenType);
+        while (cursor < subGroup.length && subGroup[cursor] !== matchingToken) {
+          cursor += 1;
+          if (subGroup[cursor] === matchingToken) {
+            context.pos = cursor;
+            break;
+          }
+        }
+        break;
+      }
+
       case "end":
         break;
     }
@@ -438,7 +452,7 @@ const countNotesInSubGroup = (subGroup: abcText) => {
  * return both joined() in format
  * { noteBar, lyricsBar }
  */
-const formatNoteGroupsAndCorrespondingLyrics = (
+export const formatNoteGroupsAndCorrespondingLyrics = (
   noteGroup: string,
   unformattedLyricBar: string[]
 ) => {
@@ -453,19 +467,19 @@ const formatNoteGroupsAndCorrespondingLyrics = (
      * add spaces at the end of the group of lyrics if their length is shorter than subGroup
      */
     const noteCount = countNotesInSubGroup(subGroup);
-    let subGrpLyrics = unformattedLyricBar.splice(0, noteCount).join(" ");
+    let subGrpLyrics = unformattedLyricBar.slice(0, noteCount).join(" ");
     unformattedLyricBar = unformattedLyricBar.slice(noteCount);
 
     if (subGrpLyrics.length < subGroup.length) {
       const fillerSpacesNeeded = subGroup.length - subGrpLyrics.length;
-      subGrpLyrics += new Array(fillerSpacesNeeded).fill(" ");
+      subGrpLyrics += new Array(fillerSpacesNeeded).fill(" ").join("");
     }
     lyricGroup += subGrpLyrics;
   });
 
-  if (lyricGroup.length - 1 > noteGroup.length) {
-    const fillerSpacesNeeded = lyricGroup.length - 1 - noteGroup.length;
-    noteGroup += new Array(fillerSpacesNeeded);
+  if (lyricGroup.length > noteGroup.length) {
+    const fillerSpacesNeeded = lyricGroup.length - noteGroup.length;
+    noteGroup += new Array(fillerSpacesNeeded).fill(" ").join("");
   }
   return {
     __return: {
