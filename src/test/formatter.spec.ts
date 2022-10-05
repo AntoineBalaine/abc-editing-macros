@@ -3,6 +3,10 @@ import { abcText } from "../annotationsActions";
 import { formatterDispatch } from "../dispatcher";
 import { separateHeaderAndBody } from "../fileStructureActions";
 import {
+  findEndOfChord,
+  findEndOfNote,
+  findFirstPrecedingMusicLineIndex,
+  findSubdivisionsInNoteGroup,
   findVoicesHandles,
   formatLineSystem,
   formatScore,
@@ -157,4 +161,79 @@ w:       abcd |`;
       assert.equal(formatScore(multiVoice_Tune), multiVoice_Tune_formatted);
     });
   }); */
+  describe("format lyrics", function () {
+    describe("using helper functions", function () {
+      it("finds ends of chords in string", function () {
+        assert.equal(findEndOfChord("[^C=B_E]", { pos: 0 }), 8);
+        assert.equal(findEndOfChord("[^C,=B_E]2", { pos: 0 }), 10);
+        assert.equal(findEndOfChord("[^C=b''_E]/4", { pos: 0 }), 12);
+        assert.equal(findEndOfChord("[^C=B_E]/4", { pos: 0 }), 10);
+      });
+      it("finds ends of notes in string", function () {
+        assert.equal(findEndOfNote("^C///=B", { pos: 0 }), 5);
+        assert.equal(findEndOfNote("^c''=B", { pos: 0 }), 4);
+        assert.equal(findEndOfNote("^C,,=B", { pos: 0 }), 4);
+        assert.equal(findEndOfNote("^C,,/2=B", { pos: 0 }), 6);
+        assert.equal(findEndOfNote("^c''///=B", { pos: 0 }), 7);
+      });
+      it("finds first preceding music line index", function () {
+        const text1 = `
+[V:1] abcd |
+w: a lyric line
+[V:2] abcd |
+w: a second lyric line`;
+        const text2 = `
+[V:1] abcd |
+K:C a nomenclature line
+w: a lyricline`;
+        const text3 = `
+[V:1] abcd |
+w: a lyricline
+w: a second lyricline`;
+        assert.equal(
+          findFirstPrecedingMusicLineIndex(
+            text1.split("\n").filter((n) => n),
+            3
+          ),
+          2
+        );
+        assert.equal(
+          findFirstPrecedingMusicLineIndex(
+            text2.split("\n").filter((n) => n),
+            2
+          ),
+          0
+        );
+        assert.equal(
+          findFirstPrecedingMusicLineIndex(
+            text3.split("\n").filter((n) => n),
+            2
+          ),
+          -1
+        );
+      });
+      it("finds subdivisions in a note group", function () {
+        const grp1 = `_a_bc_d!fermata!_A2`;
+        const grp1Divisé = [`_a_bc_d!fermata!`, `_A2`];
+        const grp2 = `_a_bc_d!fermata!_A2abc"annotation"abdec`;
+        const grp2Divisé = [`_a_bc_d!fermata!`, `_A2abc"annotation"`, `abdec`];
+        const grp3 = `_a_bc_d!fermata!_A2abc"annotation"abdec[K:C]^C,,adec`;
+        const grp3Divisé = [
+          `_a_bc_d!fermata!`,
+          `_A2abc"annotation"`,
+          `abdec[K:C]`,
+          `^C,,adec`,
+        ];
+        assert.deepEqual(findSubdivisionsInNoteGroup(grp1, ""), {
+          subdivisionsInNoteGroup: grp1Divisé,
+        });
+        assert.deepEqual(findSubdivisionsInNoteGroup(grp2, ""), {
+          subdivisionsInNoteGroup: grp2Divisé,
+        });
+        assert.deepEqual(findSubdivisionsInNoteGroup(grp3, ""), {
+          subdivisionsInNoteGroup: grp3Divisé,
+        });
+      });
+    });
+  });
 });

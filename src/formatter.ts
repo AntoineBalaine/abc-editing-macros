@@ -477,10 +477,12 @@ const formatNoteGroupsAndCorrespondingLyrics = (
   };
 };
 
-function findSubdivisionsInNoteGroup(noteGroup: string, curString: string) {
+export function findSubdivisionsInNoteGroup(
+  noteGroup: string,
+  curString: string
+) {
   const context: contextObj = {
-    startPos: 0,
-    pos: 0,
+    pos: -1,
   };
   const subdivisionsInNoteGroup: string[] = [];
 
@@ -501,11 +503,11 @@ function findSubdivisionsInNoteGroup(noteGroup: string, curString: string) {
         ) {
           cursor += 1;
           if (noteGroup[cursor] === matchingToken) {
-            cursor += 1;
-            curString += noteGroup.substring(context.pos, cursor);
+            curString += noteGroup.substring(context.pos, cursor + 1);
             subdivisionsInNoteGroup.push(curString);
             curString = "";
             context.pos = cursor;
+            break;
           }
         }
         break;
@@ -517,7 +519,6 @@ function findSubdivisionsInNoteGroup(noteGroup: string, curString: string) {
         break;
       }
       default: {
-        context.pos += 1;
         curString += contextChar;
         break;
       }

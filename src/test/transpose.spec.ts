@@ -1,4 +1,4 @@
-import { noteDispatcher } from "../dispatcher";
+import { findTokenType, noteDispatcher } from "../dispatcher";
 import {
   convertToEnharmoniaTransform,
   convertToRestTransform,
@@ -318,7 +318,10 @@ describe("Nomenclature", function () {
   describe("using detector function", function () {
     it("recognizes line comments", function () {
       assert.ok(isNomenclatureLine(nomenclature as abcText, { pos: 0 }));
-      assert.ok(isNomenclatureLine(nomenclature2 as abcText, { pos: 0 }));
+      assert.ok(
+        findTokenType(nomenclature2 as abcText, { pos: 0 }),
+        "lyric line"
+      );
       assert.ok(isNomenclatureLine(nomenclature3 as abcText, { pos: 0 }));
       assert.ok(!isNomenclatureLine(notNomenclature as abcText, { pos: 0 }));
     });
