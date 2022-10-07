@@ -202,7 +202,7 @@ const alignBarLines = (text: string) => {
   return lines_bars.map((line_bar) => line_bar.join("|")).join("\n");
 };
 
-function alignLyrics(text: string): string {
+export const alignLyrics = (text: string): string => {
   //insert space after lyric nomenclature
   text = text.replace(/^w:(?=[^\s])/, "w: ");
 
@@ -220,7 +220,7 @@ function alignLyrics(text: string): string {
 
   const lyricLinesIndexs = Lines.map((line, index) =>
     /^w:/.test(line) ? index : -1
-  );
+  ).filter((n) => n > -1);
   /**
    * subdivide by barlines
    * align syllables with notes.
@@ -242,19 +242,22 @@ function alignLyrics(text: string): string {
     let startLyricBarIdx = 0;
     let currentVoiceNomenclature = "";
     let currentLyricsNomenclature = "w: ";
-    if (/^[V:[^\]]*\]/.test(Lines[musicLineIndex])) {
+    if (/^\[V:[^\]]*\]/.test(Lines[musicLineIndex])) {
       startMusicBarIdx = Lines[musicLineIndex].indexOf("]") + 1;
-      currentVoiceNomenclature =
-        Lines[musicLineIndex].substring(0, startMusicBarIdx + 1) + " ";
+      currentVoiceNomenclature = Lines[musicLineIndex].substring(
+        0,
+        startMusicBarIdx
+      );
     }
     //remove lyrics nomenclature at start of line
     if (/^w:/.test(Lines[lyricLineIndex])) {
-      startLyricBarIdx = Lines[lyricLineIndex].indexOf("w:") + 1;
+      startLyricBarIdx = Lines[lyricLineIndex].indexOf("w:") + 2;
     }
     if (currentVoiceNomenclature.length > currentLyricsNomenclature.length) {
       const fillerSpacesNeeded =
         currentVoiceNomenclature.length - currentLyricsNomenclature.length;
-      currentLyricsNomenclature += new Array(fillerSpacesNeeded).join(" ");
+      //I am inserting fillerSpacesNeeded + 1: the `+1` refers to the WS between nomenclature and start of music
+      currentLyricsNomenclature += new Array(fillerSpacesNeeded + 1).join(" ");
     }
 
     const musicLine = Lines[musicLineIndex].substring(startMusicBarIdx);
@@ -263,6 +266,7 @@ function alignLyrics(text: string): string {
      * when putting back together the line, will have to account for the case in which
      * there was a closing barline at the end of it
      */
+    const musicLineHasClosingBarLine = /|\s*$/.test(musicLine);
     const musicBars = musicLine.split("|").filter((n) => n !== "");
     const lyricBars = lyricLine.split("|").filter((n) => n !== "");
 
@@ -288,9 +292,11 @@ function alignLyrics(text: string): string {
        */
 
       const curMusicBar = musicBars[barIdx];
-      let unformattedLyricBar = lyricBars[barIdx].split(" ");
+      let unformattedLyricBar = lyricBars[barIdx]
+        .split(" ")
+        .filter((n) => n !== "");
 
-      const noteGroups = curMusicBar.split(" "); //split at spaces that are not inside annotations
+      const noteGroups = curMusicBar.split(" ").filter((n) => n !== ""); //split at spaces that are not inside annotations
 
       /**
        * match noteGroups with the corresponding lyrics,
@@ -321,12 +327,15 @@ function alignLyrics(text: string): string {
       musicBars[barIdx] = formattedNotesBar;
       lyricBars[barIdx] = formattedLyricsBar;
     }
-    Lines[musicLineIndex] = currentVoiceNomenclature + musicBars.join("|");
+    Lines[musicLineIndex] =
+      currentVoiceNomenclature +
+      musicBars.join("|") +
+      (musicLineHasClosingBarLine ? "|" : "");
     Lines[lyricLineIndex] = currentLyricsNomenclature + lyricBars.join("|");
   });
 
   return Lines.join("\n");
-}
+};
 
 export const startAllNotesAtSameIndexInLine = (text: string): string => {
   // add a space between voice nomenclatures and notes if there isn't one already

@@ -3,6 +3,7 @@ import { abcText } from "../annotationsActions";
 import { formatterDispatch } from "../dispatcher";
 import { separateHeaderAndBody } from "../fileStructureActions";
 import {
+  alignLyrics,
   countNotesInSubGroup,
   findEndOfChord,
   findEndOfNote,
@@ -244,9 +245,6 @@ w: a second lyricline`;
         assert.equal(countNotesInSubGroup('^C//_B2"this is an annotation"'), 2);
       });
       it("formats Note Groups with Corresponding Lyrics", function () {
-        const Line1 = `[V:T1]  CC GG AA G2 | FF EE DD C2 |
-w: À vous di rai je ma man | Ce qui cau se mon tour ment | `;
-
         assert.deepEqual(
           formatNoteGroupsAndCorrespondingLyrics(
             `CCGG`,
@@ -267,6 +265,18 @@ w: À vous di rai je ma man | Ce qui cau se mon tour ment | `;
             lyricGroup: "À vous     di rai",
           }
         );
+      });
+    });
+    describe("usign alignLyrics function", function () {
+      const unformatted = `
+[V:T1] CC GG AA G2 | FF EE DD C2 |
+w: À vous di rai je ma man | Ce qui cau se mon tour ment | `;
+      const formatted = `
+[V:T1] CC     GG     AA    G2  | FF     EE     DD       C2   |
+w:     À vous di rai je ma man | Ce qui cau se mon tour ment | `;
+
+      it("formats single lign of music", function () {
+        assert.equal(alignLyrics(unformatted), formatted);
       });
     });
   });
