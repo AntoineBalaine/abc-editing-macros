@@ -267,17 +267,27 @@ w: a second lyricline`;
         );
       });
     });
-    describe("usign alignLyrics function", function () {
-      const unformatted = `
+    /*     describe("usign alignLyrics function", function () {
+      const unformatted1 = `
 [V:T1] CC GG AA G2 | FF EE DD C2 |
 w: À vous di rai je ma man | Ce qui cau se mon tour ment | `;
-      const formatted = `
+      const formatted1 = `
 [V:T1] CC     GG     AA    G2  | FF     EE     DD       C2   |
 w:     À vous di rai je ma man | Ce qui cau se mon tour ment | `;
 
       it("formats single lign of music", function () {
-        assert.equal(alignLyrics(unformatted), formatted);
+        assert.equal(alignLyrics(unformatted1), formatted1);
       });
-    });
+
+      const unformatted2 = `
+[V:T1] CC G"annotation here, just for fun"G AA G2 | FF EE DD C2 |
+w: À vous di rai je ma man | Ce qui cau se mon tour ment | `;
+      const formatted2 = `
+[V:T1] CC     G"annotation here, just for fun"G     A!fermata!A G2  | FF     EE     DD       C2   |
+w:     À vous di rai                                je ma       man | Ce qui cau se mon tour ment | `;
+      it("formats line of music with annotations and symbols", function () {
+        assert.equal(alignLyrics(unformatted2), formatted2);
+      });
+    }); */
   });
 });

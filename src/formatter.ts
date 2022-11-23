@@ -296,7 +296,9 @@ export const alignLyrics = (text: string): string => {
         .split(" ")
         .filter((n) => n !== "");
 
-      const noteGroups = curMusicBar.split(" ").filter((n) => n !== ""); //split at spaces that are not inside annotations
+      //split at spaces that are not inside annotations
+      splitBarAtSpacesThatAreNoteInsideAnnotations(curMusicBar);
+      const noteGroups = curMusicBar.split(" ").filter((n) => n !== "");
 
       /**
        * match noteGroups with the corresponding lyrics,
@@ -619,4 +621,47 @@ export function findEndOfNote(text: string, context: contextObj) {
     } else break;
   }
   return context.pos;
+}
+
+function splitBarAtSpacesThatAreNoteInsideAnnotations(
+  curMusicBar: string
+): string[] {
+  /**
+   * split at annotations
+   * for each non-annotation
+   * */
+  const context: contextObj = { pos: -1 };
+  let curString = "";
+  let isStillInGroup = false;
+  while (context.pos < curMusicBar.length) {
+    const contextChar = curMusicBar.charAt(context.pos);
+    switch (findTokenType(contextChar, context)) {
+      case "annotation": {
+        /**
+         *
+         */
+        let annotationCloseIdx =
+          curMusicBar.substring(context.pos + 1).indexOf('"') + 1;
+        let fullAnnotation = curMusicBar.substring(
+          context.pos,
+          annotationCloseIdx
+        );
+        if (curMusicBar.charAt(annotationCloseIdx) !== " ") {
+          isStillInGroup = true;
+          /**
+           * split contents of music that after annotation (remaining contents)
+           * append full annotation and remaining contents to the beginning of the parts.
+           */
+        }
+        let arr = curString.split(" ").filter((n) => n);
+        arr[arr.length - 1] = arr[arr.length - 1] + fullAnnotation;
+      }
+
+      default:
+    }
+  }
+  /**
+   * other approcah: use a regex to find starts and ends of annotations, make the splits.
+   */
+  return [];
 }
