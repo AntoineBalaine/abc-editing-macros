@@ -58,28 +58,33 @@ enum tokenTypes {
   end = "end",
 }
 
-export const findTokenType = (text: abcText, context: contextObj) => {
+export const findTokenType = (
+  text: abcText,
+  context: contextObj
+): tokenTypes => {
   const token = text.charAt(context.pos);
-  if (isPitchToken(token)) return "note";
-  if (isRest(token)) return "rest";
-  if (isOpeningTie(token + text.charAt(context.pos + 1))) return "openingTie";
-  if (isArticulation(text, context)) return "articulation";
-  if (token === " ") return "space";
-  if (token === "|") return "barLine";
-  if (token === '"') return "annotation";
-  if (token === "!") return "symbol";
+  if (isPitchToken(token)) return tokenTypes.note;
+  if (isRest(token)) return tokenTypes.rest;
+  if (isOpeningTie(token + text.charAt(context.pos + 1)))
+    return tokenTypes.openingTie;
+  if (isArticulation(text, context)) return tokenTypes.articulation;
+  if (token === " ") return tokenTypes.space;
+  if (token === "|") return tokenTypes.barLine;
+  if (token === '"') return tokenTypes.annotation;
+  if (token === "!") return tokenTypes.symbol;
   if (token === "w" && /^w:/.test(text.substring(context.pos)))
-    return "lyric line";
+    return tokenTypes.lyric;
   if (token === "\n" && isNomenclatureLine(text, { pos: context.pos + 1 }))
-    return "nomenclature line";
+    return tokenTypes.nomenclatureLine;
   if (context.pos === 0 && isNomenclatureLine(text, { pos: context.pos }))
-    return "nomenclature line";
+    return tokenTypes.nomenclatureLine;
   if (token === "[" && isNomenclatureTag(text, context))
-    return "nomenclature tag";
-  if (token === "[" && !isNomenclatureTag(text, context)) return "chord";
-  if (context.pos < text.length) return "unmatched";
-  if (/^%/.test(text.substring(context.pos))) return "comment line";
-  else return "end";
+    return tokenTypes.nomenclatureTag;
+  if (token === "[" && !isNomenclatureTag(text, context))
+    return tokenTypes.chord;
+  if (context.pos < text.length) return tokenTypes.unmatched;
+  if (/^%/.test(text.substring(context.pos))) return tokenTypes.comment;
+  else return tokenTypes.end;
 };
 
 export const noteDispatcher: dispatcherFunction = ({
@@ -99,22 +104,22 @@ export const noteDispatcher: dispatcherFunction = ({
   };
 
   switch (tokenType) {
-    case "note":
+    case tokenTypes.note:
       return parseNote(text, context, transformFunction, tag);
-    case "rest":
+    case tokenTypes.rest:
       return parseNote(text, context, transformFunction, tag);
-    case "annotation":
+    case tokenTypes.annotation:
       if (tag) {
         return parseAnnotation(text, context, tag, transformFunction);
       }
-    case "symbol":
+    case tokenTypes.symbol:
       return jumpToEndOfSymbol(propsForActionFn);
-    case "lyric line":
-    case "nomenclature line":
+    case tokenTypes.lyric:
+    case tokenTypes.nomenclatureLine:
       return jumpToEndOfNomenclatureLine(propsForActionFn);
-    case "nomenclature tag":
+    case tokenTypes.nomenclatureTag:
       return jumpToEndOfNomenclatureTag(propsForActionFn);
-    case "end":
+    case tokenTypes.end:
       return "";
     default: {
       context.pos += 1;
@@ -139,19 +144,19 @@ export const chordDispatcher: dispatcherFunction = ({
     dispatcherFunction: chordDispatcher,
   };
   switch (tokenType) {
-    case "chord":
+    case tokenTypes.chord:
       return parseChord({ text, context, transformFunction });
-    case "annotation":
+    case tokenTypes.annotation:
       return jumpToEndOfAnnotation(propsForActionFn);
-    case "symbol":
+    case tokenTypes.symbol:
       return jumpToEndOfSymbol(propsForActionFn);
-    case "nomenclature line":
+    case tokenTypes.nomenclatureLine:
       return jumpToEndOfNomenclatureLine(propsForActionFn);
-    case "nomenclature tag":
+    case tokenTypes.nomenclatureTag:
       return jumpToEndOfNomenclatureTag(propsForActionFn);
-    case "note":
+    case tokenTypes.note:
       return jumpToEndOfNote(propsForActionFn);
-    case "end":
+    case tokenTypes.end:
       return "";
     default: {
       context.pos += 1;
@@ -183,17 +188,17 @@ export const restDispatcher: dispatcherFunction = ({
         ? parseFunction(propsForActionFn)
         : transformFunction(contextChar);
     }
-    case "annotation":
+    case tokenTypes.annotation:
       return jumpToEndOfAnnotation(propsForActionFn);
-    case "symbol":
+    case tokenTypes.symbol:
       return jumpToEndOfSymbol(propsForActionFn);
-    case "nomenclature line":
+    case tokenTypes.nomenclatureLine:
       return jumpToEndOfNomenclatureLine(propsForActionFn);
-    case "nomenclature tag":
+    case tokenTypes.nomenclatureTag:
       return jumpToEndOfNomenclatureTag(propsForActionFn);
-    case "end":
+    case tokenTypes.end:
       return "";
-    case "openingTie": {
+    case tokenTypes.openingTie: {
       if (tieContainsNotes({ ...propsForActionFn, context: { ...context } })) {
         return consolidateRestsInTieAndJumpToEndOfTie(propsForActionFn);
       } else {
@@ -202,7 +207,7 @@ export const restDispatcher: dispatcherFunction = ({
           : transformFunction(contextChar);
       }
     }
-    case "articulation":
+    case tokenTypes.articulation:
       context.pos += 1;
       return restDispatcher(propsForActionFn);
     default: {
@@ -228,9 +233,9 @@ export const formatterDispatch: dispatcherFunction = ({
     parseFunction,
   };
   switch (tokenType) {
-    case "rest":
-    case "openingTie":
-    case "note": {
+    case tokenTypes.rest:
+    case tokenTypes.openingTie:
+    case tokenTypes.note: {
       if (parseFunction) {
         return parseFunction(propsForActionFn);
       } else {
@@ -238,22 +243,22 @@ export const formatterDispatch: dispatcherFunction = ({
         return contextChar + formatterDispatch(propsForActionFn);
       }
     }
-    case "annotation":
+    case tokenTypes.annotation:
       return jumpToEndOfAnnotation(propsForActionFn);
-    case "space":
+    case tokenTypes.space:
       return parseFunction
         ? parseFunction(propsForActionFn)
         : (() => {
             context.pos += 1;
             return contextChar + formatterDispatch(propsForActionFn);
           })();
-    case "symbol":
+    case tokenTypes.symbol:
       return jumpToEndOfSymbol(propsForActionFn);
-    case "nomenclature line":
+    case tokenTypes.nomenclatureLine:
       return jumpToEndOfNomenclatureLine(propsForActionFn);
-    case "nomenclature tag":
+    case tokenTypes.nomenclatureTag:
       return jumpToEndOfNomenclatureTag(propsForActionFn);
-    case "end":
+    case tokenTypes.end:
       return "";
     default: {
       context.pos += 1;
@@ -302,18 +307,18 @@ export const musicSplitter_lyricFormatter: dispatcherFunction = ({
     parseFunction,
   };
   switch (tokenType) {
-    case "rest":
-    case "openingTie":
-    case "note": {
+    case tokenTypes.rest:
+    case tokenTypes.openingTie:
+    case tokenTypes.note: {
       context.pos += 1;
       return contextChar + musicSplitter_lyricFormatter(propsForActionFn);
     }
-    case "annotation":
-    case "space":
-    case "symbol":
-    case "nomenclature tag":
+    case tokenTypes.annotation:
+    case tokenTypes.space:
+    case tokenTypes.symbol:
+    case tokenTypes.nomenclatureTag:
       return jumpToEndOfNomenclatureTag(propsForActionFn);
-    case "end":
+    case tokenTypes.end:
       return "";
     default: {
       context.pos += 1;
